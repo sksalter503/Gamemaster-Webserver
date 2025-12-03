@@ -6,6 +6,18 @@ body {
     color: #ffffff;
 }
 
+p {
+    text-indent: 2em;
+}
+
+p+p {
+    margin-top: 0;
+}
+
+p:has(+p) {
+    margin-bottom: 0;
+}
+
 q {
     font-style: italic;
     color: #cccccc;
