@@ -1,0 +1,31 @@
+{
+  "name": "gamemaster-webserver",
+  "version": "1.0.0",
+  "description": "customized webserver for tabletop campaigns",
+  "main": "app.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node app.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sksalter503/Gamemaster-Webserver.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sksalter503/Gamemaster-Webserver/issues"
+  },
+  "homepage": "https://github.com/sksalter503/Gamemaster-Webserver#readme",
+  "dependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.1",
+    "@types/typescript": "^0.4.29",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "path": "^0.12.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

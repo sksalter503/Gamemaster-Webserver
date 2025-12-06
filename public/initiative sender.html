@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initiative Sender</title>
+    <link rel="stylesheet" href="./style/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Initiative Sender</h1>
+        <form id="initiativeForm">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="initiative">Initiative:</label>
+                <input type="number" id="initiative" name="initiative" required>
+            </div>
+            <button type="submit">Send Initiative</button>
+        </form>
+    </div>
+
+    <div class="initiatives">
+
+    </div>
+    <script>
+        const API_URL = `http://192.168.1.12:80/initiative`; // Change this to your endpoint
+
+        document.getElementById('initiativeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const initiative = document.getElementById('initiative').value;
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, initiative: parseInt(initiative) })
+                });
+
+                // Clear fields after successful send
+                document.getElementById('name').value = '';
+                document.getElementById('initiative').value = '';
+            } catch (error) {
+                console.error('Error sending initiative:', error);
+            }
+        });
+
+        async function fetchInitiatives() {
+            try {
+                const response = await fetch(API_URL);
+                const JSON = await response.json();
+                const initiatives = JSON.initiatives;
+                const currentTurnIndex = JSON.currentTurnIndex;
+                const combatStarted = JSON.combatStarted;
+
+                const initiativesDiv = document.querySelector('.initiatives');
+                initiativesDiv.innerHTML = '';
+
+                if (initiatives.length > 0) {
+                    initiativesDiv.innerHTML = '<h3>Current turn order:</h3>';
+                    const list = document.createElement('ul');
+                    list.style.listStyleType = 'none';
+                    initiatives.forEach(init => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${init.name}: ${init.initiative}`;
+                        list.appendChild(listItem);
+                    });
+                    initiativesDiv.appendChild(list);
+                    if (combatStarted) {
+                        const listItems = list.querySelectorAll('li');
+                        listItems[currentTurnIndex].style.backgroundColor = 'white';
+                        listItems[currentTurnIndex].style.color = 'black';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching initiatives:', error);
+            }
+        }
+        // Refresh initiatives every second
+        setInterval(fetchInitiatives, 1000);
+    </script>
+</body>
+
+</html>
