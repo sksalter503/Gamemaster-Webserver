@@ -14,6 +14,7 @@ const port = 80;
  * - Add initiative sending to the admin panel
  * - Add editable fields on admin panel
  * - Add back button on the public pages
+ * - Add the ability to delete your own initiative entries.
  */
 
 app.use(express.static(path.join(process.cwd(), 'public'), {
