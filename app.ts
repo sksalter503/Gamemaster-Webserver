@@ -7,6 +7,15 @@ const app = express();
 const port = 80;
 
 
+/*
+ * TODO:
+ * - Add a health tracking system
+ * - Add status tracking system
+ * - Add initiative sending to the admin panel
+ * - Add editable fields on admin panel
+ * - Add back button on the public pages
+ */
+
 app.use(express.static(path.join(process.cwd(), 'public'), {
     extensions: ['html']
 }));
