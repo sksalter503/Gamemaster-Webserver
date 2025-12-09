@@ -4,8 +4,11 @@
   "description": "customized webserver for tabletop campaigns",
   "main": "app.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node app.ts"
+    "build:server": "tsc -p tsconfig.server.json",
+    "build:client": "tsc -p tsconfig.client.json",
+    "build": "npm run build:server && npm run build:client",
+    "start": "npm run build && node dist/server/app.js",
+    "clean": "tsc --build --clean tsconfig.server.json tsconfig.client.json"
   },
   "repository": {
     "type": "git",

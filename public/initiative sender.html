@@ -27,8 +27,8 @@
     <div class="initiatives">
 
     </div>
-    <script>
-        const API_URL = `http://192.168.0.53:80/initiative`; // Change this to your endpoint
+    <script type="module">
+        import { API_URL } from './scripts/client/consts.js';
 
         document.getElementById('initiativeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -37,7 +37,7 @@
             const initiative = document.getElementById('initiative').value;
 
             try {
-                await fetch(API_URL, {
+                await fetch(`${API_URL}/initiative`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -55,7 +55,7 @@
 
         async function fetchInitiatives() {
             try {
-                const response = await fetch(API_URL);
+                const response = await fetch(`${API_URL}/initiative`);
                 const JSON = await response.json();
                 const initiatives = JSON.initiatives;
                 const currentTurnIndex = JSON.currentTurnIndex;
