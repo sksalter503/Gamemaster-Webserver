@@ -9,12 +9,22 @@ const port = 80;
 
 /*
  * TODO:
+ *
+ * - Initiative tracker stuff --- :
  * - Add a health tracking system
  * - Add status tracking system
  * - Add initiative sending to the admin panel
  * - Add editable fields on admin panel
  * - Add back button on the public pages
  * - Add the ability to delete your own initiative entries.
+ * - Add end turn button on the initiative tracker.
+ * - Add AC
+ * - Add Movement speed
+ * 
+ * - DND Beyond Replacement Shit:
+ * - Character sheet
+ * - Searchable systems that use 5E.tools to do stuff.
+ * - Better custom items.
  */
 
 app.use(express.static(path.join(process.cwd(), 'public'), {
