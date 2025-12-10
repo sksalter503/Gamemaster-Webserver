@@ -17,14 +17,14 @@
             <button id="nextTurn">Next Turn</button>
             <button id="endCombat">End Combat</button>
         </div>
-        <div class="initiatives">
+        <div id="initiatives">
             <ul style="list-style-type: none;" id="initiatives">
 
             </ul>
         </div>
     </div>
 
-    <script>
+    <script> //TODO: work on this file
         const API_URL = 'http://localhost:80/initiative';
         let currentTurnIndex = 0;
         document.getElementById('clearInitiativesBtn').addEventListener('click', async () => {

@@ -9,27 +9,22 @@ const port = 80;
 
 
 /*
- * TODO:
- *
- * - Initiative tracker stuff --- :
- * - Add a health tracking system
- * - Add status tracking system
- * - Add initiative sending to the admin panel
- * - Add editable fields on admin panel
- * - Add back button on the public pages
- * - Add the ability to delete your own initiative entries.
- * - Add end turn button on the initiative tracker.
- * - Add AC
- * - Add Movement speed
+ * Initiative tracker stuff --- :
+ * //TODO: Add initiative sending to the admin panel
+ * //TODO: Add editable fields on admin panel
+ * //TODO: Add back button on the public pages
+ * //TODO: Add end turn button on the initiative tracker.
+ * //TODO: Add AC
+ * //TODO: Add Movement speed
  * 
- * - DND Beyond Replacement Shit:
- * - Character sheet
- * - Searchable systems that use 5E.tools to do stuff.
- * - Better custom items.
+ * DND Beyond Replacement Shit:
+ * //TODO: Character sheet
+ * //TODO: Searchable systems that use 5E.tools to do stuff.
+ * //TODO: Better custom items.
  */
 
 app.use(express.static(path.join(process.cwd(), 'public'), {
-    extensions: ['html']
+    extensions: ['html', 'js']
 }));
 app.use(express.json());
 app.use(cors());
@@ -64,7 +59,7 @@ let currentTurnIndex = 0;
 let combatStarted = false;
 
 app.post('/initiative', express.json(), (req, res) => {
-    console.log(`POST: ${JSON.stringify(req.body)}`);
+    console.log(`POST from ${req.ip}: ${JSON.stringify(req.body)}`);
 
     const initiative: Initiative = req.body;
     initiatives.push(initiative);
@@ -126,6 +121,19 @@ app.delete('/initiative/:index', (req, res) => {
     if (initiatives.length === 0) {
         combatStarted = false;
     }
+    res.status(200).send();
+});
+
+app.patch('/initiative/:index/status', express.json(), (req, res) => {
+    const index = parseInt(req.params.index, 10);
+    console.log(`PATCH status for initiative at index ${index} from ${req.ip}`);
+    const status = req.body.status;
+
+    if (isNaN(index) || index < 0 || index >= initiatives.length) {
+        console.error(`ERROR: Invalid index`);
+        return res.status(400).send('Invalid index');
+    }
+    initiatives[index].status = status;
     res.status(200).send();
 });
 
