@@ -4,6 +4,7 @@ https://nodejs.org/en/download
 Instructions:
 - before running, check  what your local network address is, likely by running `ipconfig` in the terminal and finding a line that says ipv4 address, likely starting with 192.0 or 192.1
 - After aquiring this address, replace the `API_URL` value in `./src/shared/consts.ts` with the new value.
+- Set a secure password in this file as well, using the `ADMIN_PASSWORD` field.
 - run `npm run start` to run the program.
 
 Coders:

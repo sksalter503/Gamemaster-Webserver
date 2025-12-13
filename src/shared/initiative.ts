@@ -230,7 +230,7 @@ class RowHandlers {
     }
 
     @RegisterRowHandler('adminDelete')
-    static addAdminDeleteRow(tableRow: HTMLTableElement, init: Initiative, index: number): void {
+    static addAdminDeleteRow(tableRow: HTMLTableElement, init: Initiative, _: any, index: number): void {
         const deleteCell = document.createElement('td');
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Delete';
@@ -242,12 +242,16 @@ class RowHandlers {
     }
 
     @RegisterRowHandler('highlightCurrent')
-    static highlightCurrentRow(tableRow: HTMLTableElement, init: Initiative, index: number, currentTurnIndex: number): void {
+    static highlightCurrentRow(tableRow: HTMLTableElement, init: Initiative, _: any, index: number, currentTurnIndex: number): void {
         if (index !== currentTurnIndex) {
             return;
         }
         tableRow.style.color = 'black';
         tableRow.style.backgroundColor = 'white';
+        tableRow.querySelectorAll('td').forEach((cell: HTMLTableCellElement) => {
+            cell.style.border = '2px solid black';
+            cell.style.fontWeight = 'bold';
+        });
     }
 }
 
@@ -273,7 +277,7 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], currentT
                 continue;
             }
             if (option in rowHandlerRegistry) {
-                rowHandlerRegistry[option](tableRow, init, indexesCreated, index);
+                rowHandlerRegistry[option](tableRow, init, indexesCreated, index, currentTurnIndex);
             }
         }
 
@@ -281,6 +285,7 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], currentT
             tableRow.style.backgroundColor = 'red';
             tableRow.style.textDecoration = 'line-through';
         }
+
         table.appendChild(tableRow);
     });
 

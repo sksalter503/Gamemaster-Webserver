@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin panel</title>
+    <link rel="stylesheet" href="./style/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Admin Panel</h1>
+        <button id="clearInitiativesBtn">Clear Initiatives</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
+            <button id="startCombat">Start Combat</button>
+            <button id="nextTurn">Next Turn</button>
+            <button id="endCombat">End Combat</button>
+        </div>
+        <form id="initiativeForm">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="initiative">Initiative:</label>
+                <input type="number" id="initiative" name="initiative" required>
+            </div>
+            <div class="form-group">
+                <label for="health">Health:</label>
+                <input type="number" id="health" name="health" min="0">
+            </div>
+            <div class="form-group">
+                <label for="maxHealth">Max Health:</label>
+                <input type="number" id="maxHealth" name="maxHealth" min="0">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="initiatives">
+            <ul style="list-style-type: none;" id="initiatives">
+
+            </ul>
+        </div>
+    </div>
+
+    <script type="module" src="../scripts/client/admin.js"></script>
+
+</body>
+
+</html>

@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import { Initiative } from '../shared/initiative';
+import { ADMIN_PASSWORD } from '../shared/consts';
 
 const fs = require('fs');
 const app = express();
@@ -10,7 +11,6 @@ const port = 80;
 
 /*
  * Initiative tracker stuff --- :
- * //TODO: Add initiative sending to the admin panel
  * //TODO: Add editable fields on admin panel
  * //TODO: Add back button on the public pages
  * //TODO: Add end turn button on the initiative tracker.
@@ -23,12 +23,41 @@ const port = 80;
  * //TODO: Better custom items.
  */
 
+app.get('/admin', (req, res) => {
+    if (!req.query.password) {
+        return res.send(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Admin Login</title>
+                <link rel="stylesheet" href="./style/styles.css">
+            </head>
+            <body>
+                <h3>Admin Login</h3>
+                <form method="GET" action="/admin">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Login</button>
+                </form>
+            </body>
+            </html>
+            `);
+    }
+    else if (req.query.password !== ADMIN_PASSWORD) {
+        return res.send('Incorrect password. Access denied.');
+    }
+
+    res.sendFile(path.join(process.cwd(), 'public', 'admin.html'));
+
+});
+
 app.use(express.static(path.join(process.cwd(), 'public'), {
     extensions: ['html', 'js']
 }));
 app.use(express.json());
 app.use(cors());
-
 
 app.get('/', (req, res) => {
     console.log(`loading the directory for ${req.ip}`);
@@ -36,7 +65,10 @@ app.get('/', (req, res) => {
     const publicDir = path.join(process.cwd(), 'public');
     const files = fs.readdirSync(publicDir);
     const htmlFiles = files.filter((file: string) => file.endsWith('.html'));
-    const links = htmlFiles.map((file: string) => `<a href="./${file.replace('.html', '')}">${file.replace('.html', '')}</a>`).join('<br>');
+    const links = htmlFiles
+        .filter((file: string) => file !== 'admin.html')
+        .map((file: string) => `<a href="./${file.replace('.html', '')}">${file.replace('.html', '')}</a>`)
+        .join('<br>');
     res.send(`
         <!DOCTYPE html>
         <html lang="en">
@@ -53,6 +85,8 @@ app.get('/', (req, res) => {
         </html>
     `);
 });
+
+
 
 const initiatives: Initiative[] = [];
 let currentTurnIndex = 0;
