@@ -3,7 +3,7 @@ import { fetchCombatStarted, fetchCurrentTurnIndex, fetchInitiatives, postInitia
 const initiativesCreated: string[] = [];
 let indexesCreated: number[] = [];
 
-document.getElementById('initiativeForm')?.addEventListener('submit', async (e) => {
+export async function submitInitiative(e: SubmitEvent) {
     e.preventDefault();
 
     const name = (document.getElementById('name') as HTMLInputElement)?.value;
@@ -25,7 +25,9 @@ document.getElementById('initiativeForm')?.addEventListener('submit', async (e) 
     } catch (error) {
         console.error('Error sending initiative:', error);
     }
-});
+}
+
+document.getElementById('initiativeForm')?.addEventListener('submit', submitInitiative);
 
 // Refresh initiatives every second
 setInterval(async () => {
@@ -42,6 +44,6 @@ setInterval(async () => {
     });
 
     const combatStarted = await fetchCombatStarted();
-    renderInitiatives(initiatives, await fetchCurrentTurnIndex(), indexesCreated, 'health', 'status', combatStarted ? 'highlightCurrent' : undefined);
+    renderInitiatives(initiatives, await fetchCurrentTurnIndex(), indexesCreated, 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
 
 }, 1000);
