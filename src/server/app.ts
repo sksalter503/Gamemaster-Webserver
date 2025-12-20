@@ -11,7 +11,7 @@ const port = 80;
 
 /*
  * Initiative tracker stuff --- :
- * //TODO: Add editable fields on admin panel
+ * //TODO: Refactor to use id's instead of indexes to identify initiatives.
  * //TODO: Add back button on the public pages
  * //TODO: Add end turn button on the initiative tracker.
  * //TODO: Add AC
@@ -94,8 +94,8 @@ let combatStarted = false;
 
 app.post('/initiative', express.json(), (req, res) => {
     console.log(`POST from ${req.ip}: ${JSON.stringify(req.body)}`);
-
     const initiative: Initiative = req.body;
+    console.log(`Adding initiative: ${JSON.stringify(initiative)}`);
     initiatives.push(initiative);
     initiatives.sort((a, b) => b.initiative - a.initiative);
     res.status(200).send();
@@ -158,6 +158,18 @@ app.delete('/initiative/:index', (req, res) => {
     res.status(200).send();
 });
 
+app.patch('/initiative/:index/name', express.json(), (req, res) => {
+    const index = parseInt(req.params.index, 10);
+    console.log(`PATCH name for initiative at index ${index} from ${req.ip}`);
+    const name = req.body.name;
+    if (isNaN(index) || index < 0 || index >= initiatives.length) {
+        console.error(`ERROR: Invalid index`);
+        return res.status(400).send('Invalid index');
+    }
+    initiatives[index].name = name;
+    res.status(200).send();
+});
+
 app.patch('/initiative/:index/status', express.json(), (req, res) => {
     const index = parseInt(req.params.index, 10);
     console.log(`PATCH status for initiative at index ${index} from ${req.ip}`);
@@ -170,6 +182,20 @@ app.patch('/initiative/:index/status', express.json(), (req, res) => {
     initiatives[index].status = status;
     res.status(200).send();
 });
+
+app.patch('/initiative/:index/health', express.json(), (req, res) => {
+    const index = parseInt(req.params.index, 10);
+    console.log(`PATCH health for initiative at index ${index} from ${req.ip}`);
+    const health = req.body.health;
+
+    if (isNaN(index) || index < 0 || index >= initiatives.length) {
+        console.error(`ERROR: Invalid index`);
+        return res.status(400).send('Invalid index');
+    }
+    initiatives[index].health = health;
+    res.status(200).send();
+});
+
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);

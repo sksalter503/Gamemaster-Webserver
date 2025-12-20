@@ -2,7 +2,7 @@ import { fetchCombatStarted, fetchCurrentTurnIndex, fetchInitiatives, postInitia
 import { submitInitiative } from './initiative sender';
 import { API_URL } from '../shared/consts';
 
-const initiativesCreated: string[] = []; //This won't actually do anything, it's just used to make sure submitInitiative() works
+let previousInitiativesData: string = '';
 let indexesCreated: number[] = [];
 
 document.getElementById('clearInitiativesBtn')!.addEventListener('click', async (e) => {
@@ -45,11 +45,18 @@ document.getElementById('initiativeForm')!.addEventListener('submit', submitInit
 
 setInterval(async () => {
     const initiatives = await fetchInitiatives();
-
-    initiativesCreated.length = 0;
-    indexesCreated.length = 0;
-    initiatives.map((init, index) => { indexesCreated.push(index); });
-
     const combatStarted = await fetchCombatStarted();
-    renderInitiatives(initiatives, await fetchCurrentTurnIndex(), indexesCreated, 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
+    const currentTurnIndex = await fetchCurrentTurnIndex();
+
+    const currentInitiativesData = JSON.stringify({ initiatives, combatStarted, currentTurnIndex });
+    if (previousInitiativesData === currentInitiativesData) {
+        //No changes, skip rendering
+        console.log('No changes in initiatives, skipping render');
+        return;
+    }
+    previousInitiativesData = currentInitiativesData;
+    console.log('Changes in initiatives, rendering');
+
+    indexesCreated = initiatives.map((_, index) => index);
+    renderInitiatives(initiatives, currentTurnIndex, indexesCreated, 'name', 'initiative', 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
 }, 1000);

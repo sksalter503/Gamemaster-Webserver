@@ -1,3 +1,4 @@
+import { Init } from 'v8';
 import { API_URL } from './consts';
 
 export type Status = 'Blinded' | 'Charmed' | 'Deafened' | 'Frightened' | 'Grappled' | 'Incapacitated' | 'Invisible' | 'Paralyzed' | 'Petrified' | 'Poisoned' | 'Prone' | 'Restrained' | 'Stunned' | 'Unconscious';
@@ -5,6 +6,7 @@ export type Status = 'Blinded' | 'Charmed' | 'Deafened' | 'Frightened' | 'Grappl
 export const ALL_STATUSES: Status[] = ['Blinded', 'Charmed', 'Deafened', 'Frightened', 'Grappled', 'Incapacitated', 'Invisible', 'Paralyzed', 'Petrified', 'Poisoned', 'Prone', 'Restrained', 'Stunned', 'Unconscious'];
 
 export type Initiative = {
+    id?: number;
     name: string;
     initiative: number;
     health?: number;
@@ -12,7 +14,7 @@ export type Initiative = {
     status?: Status[];
 }
 
-type Option = 'health' | 'status' | 'delete' | 'highlightCurrent' | undefined;
+type Option = 'name' | 'health' | 'initiative' | 'status' | 'delete' | 'highlightCurrent' | undefined;
 
 export async function fetchInitiatives(): Promise<Initiative[]> {
     try {
@@ -55,13 +57,16 @@ export async function fetchCombatStarted(): Promise<boolean> {
 
 export async function postInitiative(initiative: Initiative): Promise<void> {
     try {
-        await fetch(`${API_URL}/initiative`, {
+        const initiativeResponse = await fetch(`${API_URL}/initiative`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ name: initiative.name, initiative: initiative.initiative, health: initiative.health, maxHealth: initiative.maxHealth })
         });
+
+        const completeinitiative: Initiative = await initiativeResponse.json();
+        initiative = completeinitiative;
 
     } catch (error) {
         console.error('Error sending initiative:', error);
@@ -92,7 +97,7 @@ export async function updateStatus(index: number, status: Status[]): Promise<voi
     }
 }
 
-interface HeaderRegistry extends Record<string, () => string> { }
+interface HeaderRegistry extends Record<string, (tableRow: HTMLTableRowElement) => void> { }
 
 // Initialize the header registry object
 let headerRegistry: HeaderRegistry;
@@ -109,32 +114,39 @@ function RegisterHeader(name: string) {
 
 class HeaderFunctions {
     @RegisterHeader('name')
-    static nameHeader(): string {
-        return '<th>Name</th>';
+    static nameHeader(tableRow: HTMLTableRowElement): void {
+        const nameCell = document.createElement('th');
+        nameCell.textContent = 'Name';
+        tableRow.appendChild(nameCell);
     }
 
     @RegisterHeader('initiative')
-    static initiative(): string {
-        return '<th>Initiative</th>';
+    static initiative(tableRow: HTMLTableRowElement): void {
+        const initiativeCell = document.createElement('th');
+        initiativeCell.textContent = 'Initiative';
+        tableRow.appendChild(initiativeCell);
     }
 
     @RegisterHeader('health')
-    static health(): string {
-        return '<th style="width: 120px;">Health</th>';
+    static health(tableRow: HTMLTableRowElement): void {
+        const healthCell = document.createElement('th');
+        healthCell.style.width = '120px';
+        healthCell.textContent = 'Health';
+        tableRow.appendChild(healthCell);
     }
 
     @RegisterHeader('status')
-    static status(): string {
-        return '<th>Status</th>';
+    static status(tableRow: HTMLTableRowElement): void {
+        const statusCell = document.createElement('th');
+        statusCell.textContent = 'Status';
+        tableRow.appendChild(statusCell);
     }
 
     @RegisterHeader('delete')
-    static delete(): string {
-        return '<th>Delete</th>';
-    }
-    @RegisterHeader('highlightCurrent')
-    static highlightCurrent(): string {
-        return '';
+    static delete(tableRow: HTMLTableRowElement): void {
+        const deleteCell = document.createElement('th');
+        deleteCell.textContent = 'Delete';
+        tableRow.appendChild(deleteCell);
     }
 }
 
@@ -153,10 +165,68 @@ function RegisterRowHandler(name: string) {
 }
 
 class RowHandlers {
+    @RegisterRowHandler('name')
+    static nameRowHandler(tableRow: HTMLTableElement, init: Initiative, indexesCreated: number[], index: number): void {
+        const nameCell = document.createElement('td');
+        if (indexesCreated.includes(index)) {
+            const nameField = document.createElement('input');
+            nameField.type = 'text';
+            nameField.value = init.name;
+            nameField.style.width = '100%';
+            nameField.style.boxSizing = 'border-box';
+            nameField.style.border = '1px solid gray';
+            nameField.style.padding = '2px';
+            nameField.addEventListener('blur', async () => {
+                // This code runs when the user clicks away from the editable cell
+                await fetch(`${API_URL}/initiative/${index}/name`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: nameField.value })
+                });
+            });
+            nameCell.appendChild(nameField);
+            tableRow.appendChild(nameCell);
+        } else {
+            nameCell.textContent = init.name;
+            tableRow.appendChild(nameCell);
+        }
+    }
+
+    @RegisterRowHandler('initiative')
+    static addInitiativeRow(tableRow: HTMLTableElement, init: Initiative): void {
+        const initiativeCell = document.createElement('td');
+        initiativeCell.textContent = init.initiative.toString();
+        tableRow.appendChild(initiativeCell);
+    }
+
+    //TODO: Make this field editable
     @RegisterRowHandler('health')
-    static addHealthRow(tableRow: HTMLTableRowElement, init: Initiative): void {
+    static addHealthRow(tableRow: HTMLTableRowElement, init: Initiative, indexesCreated: number[], index: number): void {
         const healthCell = document.createElement('td');
-        healthCell.textContent = String(init.health) ?? '' + String(init.maxHealth ? `/${init.maxHealth}` : '');
+        if (indexesCreated.includes(index)) {
+            const healthField = document.createElement('input');
+            healthField.type = 'number';
+            healthField.value = init.health?.toString() ?? '';
+            healthField.style.width = '100%';
+            healthField.style.boxSizing = 'border-box';
+
+            healthField.addEventListener('blur', async () => {
+                // This code runs when the user clicks away from the editable cell
+                const newHealth = parseInt(healthField.value);
+                await fetch(`${API_URL}/initiative/${index}/health`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ health: newHealth })
+                });
+            });
+            healthCell.appendChild(healthField);
+        } else {
+            healthCell.textContent = String(init.health) ?? '' + String(init.maxHealth ? `/${init.maxHealth}` : '');
+        }
         tableRow.appendChild(healthCell);
         // Create health bar
         const healthBar = document.createElement('div');
@@ -229,18 +299,6 @@ class RowHandlers {
         tableRow.appendChild(deleteCell);
     }
 
-    @RegisterRowHandler('adminDelete')
-    static addAdminDeleteRow(tableRow: HTMLTableElement, init: Initiative, _: any, index: number): void {
-        const deleteCell = document.createElement('td');
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.addEventListener('click', async () => {
-            await deleteInitiative(index);
-        });
-        deleteCell.appendChild(deleteButton);
-        tableRow.appendChild(deleteCell);
-    }
-
     @RegisterRowHandler('highlightCurrent')
     static highlightCurrentRow(tableRow: HTMLTableElement, init: Initiative, _: any, index: number, currentTurnIndex: number): void {
         if (index !== currentTurnIndex) {
@@ -255,22 +313,11 @@ class RowHandlers {
     }
 }
 
-
-function createRows(table: HTMLTableElement, initiatives: Initiative[], currentTurnIndex: number, indexesCreated: number[], options?: Option[]): void {
+function createRows(table: HTMLTableElement, initiatives: Initiative[], currentTurnIndex: number, indexesCreated: number[], options: Option[]): void {
 
 
     initiatives.forEach((init, index) => {
         const tableRow = document.createElement('tr');
-        const nameCell = document.createElement('td');
-        nameCell.textContent = init.name;
-
-        const initCell = document.createElement('td');
-        initCell.textContent = String(init.initiative);
-
-        tableRow.appendChild(nameCell);
-        tableRow.appendChild(initCell);
-
-        if (!options) { return }
 
         for (const option of options) {
             if (option === undefined) {
@@ -298,26 +345,28 @@ export async function renderInitiatives(initiatives: Initiative[], currentTurnIn
     if (!initiativeDiv) return;
 
     //Create a new table
-    initiativeDiv.innerHTML = '';
     const table = document.createElement('table');
 
     //Insert the headers
     const tableHeaders = document.createElement('tr');
 
-    let headerHTML = headerRegistry.name() + headerRegistry.initiative();
     for (const option of options) {
         if (option === undefined) {
             continue;
         }
-        headerHTML += headerRegistry[option]();
+        if (option in headerRegistry) {
+            headerRegistry[option](tableHeaders);
+        }
     }
 
-    tableHeaders.innerHTML = headerHTML;
     table.appendChild(tableHeaders);
 
     //Create a row for each initiative
     createRows(table, initiatives, currentTurnIndex, indexesCreated, options);
 
     //Attach the table to the div
+    const currentTable = initiativeDiv.querySelector('table');
+    if (currentTable?.outerHTML === table.outerHTML) { return; }
+    initiativeDiv.innerHTML = '';
     initiativeDiv!.appendChild(table);
 };

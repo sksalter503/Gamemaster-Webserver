@@ -1,4 +1,4 @@
-import { fetchCombatStarted, fetchCurrentTurnIndex, fetchInitiatives, postInitiative, renderInitiatives } from '../shared/initiative';
+import { fetchCombatStarted, fetchCurrentTurnIndex, fetchInitiatives, Initiative, postInitiative, renderInitiatives } from '../shared/initiative';
 
 const initiativesCreated: string[] = [];
 let indexesCreated: number[] = [];
@@ -10,7 +10,7 @@ export async function submitInitiative(e: SubmitEvent) {
     const initiativeValue = parseInt((document.getElementById('initiative') as HTMLInputElement)?.value);
     const healthValue = parseInt((document.getElementById('health') as HTMLInputElement)?.value);
     const maxHealthValue = parseInt((document.getElementById('maxHealth') as HTMLInputElement)?.value);
-    const initiative = { name, initiative: initiativeValue, health: healthValue, maxHealth: maxHealthValue };
+    const initiative: Initiative = { name, initiative: initiativeValue, health: healthValue, maxHealth: maxHealthValue };
 
     try {
         await postInitiative(initiative);
@@ -44,6 +44,6 @@ setInterval(async () => {
     });
 
     const combatStarted = await fetchCombatStarted();
-    renderInitiatives(initiatives, await fetchCurrentTurnIndex(), indexesCreated, 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
+    renderInitiatives(initiatives, await fetchCurrentTurnIndex(), indexesCreated, 'name', 'initiative', 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
 
 }, 1000);
