@@ -1,12 +1,12 @@
-import { Init } from 'v8';
 import { API_URL } from './consts';
+import { UUID } from 'crypto';
 
 export type Status = 'Blinded' | 'Charmed' | 'Deafened' | 'Frightened' | 'Grappled' | 'Incapacitated' | 'Invisible' | 'Paralyzed' | 'Petrified' | 'Poisoned' | 'Prone' | 'Restrained' | 'Stunned' | 'Unconscious';
 
 export const ALL_STATUSES: Status[] = ['Blinded', 'Charmed', 'Deafened', 'Frightened', 'Grappled', 'Incapacitated', 'Invisible', 'Paralyzed', 'Petrified', 'Poisoned', 'Prone', 'Restrained', 'Stunned', 'Unconscious'];
 
 export type Initiative = {
-    id?: number;
+    id?: UUID;
     name: string;
     initiative: number;
     health?: number;
@@ -16,46 +16,22 @@ export type Initiative = {
 
 type Option = 'name' | 'health' | 'initiative' | 'status' | 'delete' | 'highlightCurrent' | undefined;
 
-export async function fetchInitiatives(): Promise<Initiative[]> {
+export async function fetchInitiatives(): Promise<[Initiative[], number, boolean]> {
     try {
         const response = await fetch(`${API_URL}/initiative`);
         const JSON = await response.json();
         const initiatives = JSON.initiatives as Initiative[];
-        return initiatives;
+        const currentTurnIndex = JSON.currentTurnIndex as number;
+        const combatStarted = JSON.combatStarted as boolean;
+        return [initiatives, currentTurnIndex, combatStarted];
 
     } catch (error) {
         console.error('Error fetching initiatives:', error);
-        return [];
+        return [[], 0, false];
     }
 }
 
-export async function fetchCurrentTurnIndex(): Promise<number> {
-    try {
-        const response = await fetch(`${API_URL}/initiative`);
-        const JSON = await response.json();
-        const currentTurnIndex = JSON.currentTurnIndex as number;
-        return currentTurnIndex;
-
-    } catch (error) {
-        console.error('Error fetching current turn index:', error);
-        return 0;
-    }
-}
-
-export async function fetchCombatStarted(): Promise<boolean> {
-    try {
-        const response = await fetch(`${API_URL}/initiative`);
-        const JSON = await response.json();
-        const combatStarted = JSON.combatStarted as boolean;
-        return combatStarted;
-
-    } catch (error) {
-        console.error('Error fetching combat started status:', error);
-        return false;
-    }
-}
-
-export async function postInitiative(initiative: Initiative): Promise<void> {
+export async function postInitiative(initiative: Initiative): Promise<Initiative | null> {
     try {
         const initiativeResponse = await fetch(`${API_URL}/initiative`, {
             method: 'POST',
@@ -65,17 +41,17 @@ export async function postInitiative(initiative: Initiative): Promise<void> {
             body: JSON.stringify({ name: initiative.name, initiative: initiative.initiative, health: initiative.health, maxHealth: initiative.maxHealth })
         });
 
-        const completeinitiative: Initiative = await initiativeResponse.json();
-        initiative = completeinitiative;
+        return await initiativeResponse.json();
 
     } catch (error) {
         console.error('Error sending initiative:', error);
+        return null;
     }
 }
 
-export async function deleteInitiative(index: number): Promise<void> {
+export async function deleteInitiative(id: UUID): Promise<void> {
     try {
-        await fetch(`${API_URL}/initiative/${index}`, {
+        await fetch(`${API_URL}/initiative/${id}`, {
             method: 'DELETE',
         });
     } catch (error) {
@@ -83,9 +59,9 @@ export async function deleteInitiative(index: number): Promise<void> {
     }
 }
 
-export async function updateStatus(index: number, status: Status[]): Promise<void> {
+export async function updateStatus(id: UUID, status: Status[]): Promise<void> {
     try {
-        await fetch(`${API_URL}/initiative/${index}/status`, {
+        await fetch(`${API_URL}/initiative/${id}/status`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -166,9 +142,9 @@ function RegisterRowHandler(name: string) {
 
 class RowHandlers {
     @RegisterRowHandler('name')
-    static nameRowHandler(tableRow: HTMLTableElement, init: Initiative, indexesCreated: number[], index: number): void {
+    static nameRowHandler(tableRow: HTMLTableElement, init: Initiative, idsCreated: UUID[]): void {
         const nameCell = document.createElement('td');
-        if (indexesCreated.includes(index)) {
+        if (document.URL.includes('admin') || idsCreated.includes(init.id!)) {
             const nameField = document.createElement('input');
             nameField.type = 'text';
             nameField.value = init.name;
@@ -177,14 +153,16 @@ class RowHandlers {
             nameField.style.border = '1px solid gray';
             nameField.style.padding = '2px';
             nameField.addEventListener('blur', async () => {
+                const newName = nameField.value;
                 // This code runs when the user clicks away from the editable cell
-                await fetch(`${API_URL}/initiative/${index}/name`, {
+                await fetch(`${API_URL}/initiative/${init.id}/name`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ name: nameField.value })
+                    body: JSON.stringify({ name: newName })
                 });
+                init.name = newName;
             });
             nameCell.appendChild(nameField);
             tableRow.appendChild(nameCell);
@@ -201,11 +179,11 @@ class RowHandlers {
         tableRow.appendChild(initiativeCell);
     }
 
-    //TODO: Make this field editable
+    //TODO: Make the max health field editable
     @RegisterRowHandler('health')
-    static addHealthRow(tableRow: HTMLTableRowElement, init: Initiative, indexesCreated: number[], index: number): void {
+    static addHealthRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: UUID[]): void {
         const healthCell = document.createElement('td');
-        if (indexesCreated.includes(index)) {
+        if (document.URL.includes('admin') || idsCreated.includes(init.id!)) {
             const healthField = document.createElement('input');
             healthField.type = 'number';
             healthField.value = init.health?.toString() ?? '';
@@ -215,13 +193,14 @@ class RowHandlers {
             healthField.addEventListener('blur', async () => {
                 // This code runs when the user clicks away from the editable cell
                 const newHealth = parseInt(healthField.value);
-                await fetch(`${API_URL}/initiative/${index}/health`, {
+                await fetch(`${API_URL}/initiative/${init.id}/health`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ health: newHealth })
                 });
+                init.health = newHealth;
             });
             healthCell.appendChild(healthField);
         } else {
@@ -247,10 +226,10 @@ class RowHandlers {
     }
 
     @RegisterRowHandler('status')
-    static addStatusRow(tableRow: HTMLTableElement, init: Initiative, indexesCreated: number[], index: number): void {
+    static addStatusRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: UUID[], _: any, __: any): void {
         const statusCell = document.createElement('td');
 
-        if (indexesCreated.includes(index)) {
+        if (document.URL.includes('admin') || idsCreated.includes(init.id!)) {
             // Create status dropdown
             const statusSelect = document.createElement('select');
             statusSelect.multiple = true;
@@ -265,13 +244,14 @@ class RowHandlers {
             });
             statusSelect.addEventListener('change', async () => {
                 const selectedStatuses = Array.from(statusSelect.selectedOptions).map(opt => opt.value as Status);
-                await fetch(`${API_URL}/initiative/${index}/status`, {
+                await fetch(`${API_URL}/initiative/${init.id}/status`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ status: selectedStatuses })
                 });
+                init.status = selectedStatuses;
             });
             statusCell.appendChild(statusSelect);
         } else {
@@ -282,8 +262,8 @@ class RowHandlers {
     }
 
     @RegisterRowHandler('delete')
-    static addDeleteRow(tableRow: HTMLTableElement, init: Initiative, indexesCreated: number[], index: number): void {
-        if (!indexesCreated.includes(index)) {
+    static addDeleteRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: UUID[], _: any, __: any): void {
+        if (!document.URL.includes('admin') && !idsCreated.includes(init.id!)) {
             const emptyCell = document.createElement('td');
             tableRow.appendChild(emptyCell);
             return;
@@ -293,14 +273,14 @@ class RowHandlers {
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Delete';
         deleteButton.addEventListener('click', async () => {
-            await deleteInitiative(index);
+            await deleteInitiative(init.id!);
         });
         deleteCell.appendChild(deleteButton);
         tableRow.appendChild(deleteCell);
     }
 
     @RegisterRowHandler('highlightCurrent')
-    static highlightCurrentRow(tableRow: HTMLTableElement, init: Initiative, _: any, index: number, currentTurnIndex: number): void {
+    static highlightCurrentRow(tableRow: HTMLTableElement, _: any, __: any, index: number, currentTurnIndex: number): void {
         if (index !== currentTurnIndex) {
             return;
         }
@@ -313,7 +293,7 @@ class RowHandlers {
     }
 }
 
-function createRows(table: HTMLTableElement, initiatives: Initiative[], currentTurnIndex: number, indexesCreated: number[], options: Option[]): void {
+function createRows(table: HTMLTableElement, initiatives: Initiative[], idsCreated: UUID[], currentTurnIndex: number, options: Option[]): void {
 
 
     initiatives.forEach((init, index) => {
@@ -324,7 +304,7 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], currentT
                 continue;
             }
             if (option in rowHandlerRegistry) {
-                rowHandlerRegistry[option](tableRow, init, indexesCreated, index, currentTurnIndex);
+                rowHandlerRegistry[option](tableRow, init, idsCreated, index, currentTurnIndex);
             }
         }
 
@@ -338,8 +318,8 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], currentT
 
 }
 
-export async function renderInitiatives(initiatives: Initiative[], currentTurnIndex: number, indexesCreated: number[], ...options: Option[]): Promise<void> {
-
+export async function renderInitiatives(initiatives: Initiative[], currentTurnIndex: number, idsCreated: UUID[], ...options: Option[]): Promise<void> {
+    //TODO: Make it only update if there are changes to that partitcular field
     //Identify the div to attach the table to
     const initiativeDiv = document.getElementById('initiatives');
     if (!initiativeDiv) return;
@@ -362,11 +342,27 @@ export async function renderInitiatives(initiatives: Initiative[], currentTurnIn
     table.appendChild(tableHeaders);
 
     //Create a row for each initiative
-    createRows(table, initiatives, currentTurnIndex, indexesCreated, options);
+    createRows(table, initiatives, idsCreated, currentTurnIndex, options);
 
     //Attach the table to the div
-    const currentTable = initiativeDiv.querySelector('table');
-    if (currentTable?.outerHTML === table.outerHTML) { return; }
     initiativeDiv.innerHTML = '';
     initiativeDiv!.appendChild(table);
 };
+
+export function makeSignature(
+    initiatives: Initiative[],
+    currentTurnIndex: number,
+    combatStarted: boolean
+): string {
+    return initiatives
+        .map(i => [
+            i.id,
+            i.name,
+            i.initiative,
+            i.health,
+            i.maxHealth,
+            JSON.stringify(i.status ?? [])
+        ].join(':'))
+        .join('|')
+        + `|turn:${currentTurnIndex}|combat:${combatStarted}`;
+}

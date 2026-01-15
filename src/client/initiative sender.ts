@@ -1,7 +1,8 @@
-import { fetchCombatStarted, fetchCurrentTurnIndex, fetchInitiatives, Initiative, postInitiative, renderInitiatives } from '../shared/initiative';
-
-const initiativesCreated: string[] = [];
-let indexesCreated: number[] = [];
+import { UUID } from 'crypto';
+import { fetchInitiatives, Initiative, makeSignature, postInitiative, renderInitiatives } from '../shared/initiative';
+//TODO: Add cookies for user identification to retrieve their initiatives
+const idsCreated: UUID[] = [];
+let previousSignature: string = '';
 
 export async function submitInitiative(e: SubmitEvent) {
     e.preventDefault();
@@ -10,11 +11,16 @@ export async function submitInitiative(e: SubmitEvent) {
     const initiativeValue = parseInt((document.getElementById('initiative') as HTMLInputElement)?.value);
     const healthValue = parseInt((document.getElementById('health') as HTMLInputElement)?.value);
     const maxHealthValue = parseInt((document.getElementById('maxHealth') as HTMLInputElement)?.value);
-    const initiative: Initiative = { name, initiative: initiativeValue, health: healthValue, maxHealth: maxHealthValue };
+    let initiative: Initiative = { name, initiative: initiativeValue, health: healthValue, maxHealth: maxHealthValue };
 
     try {
-        await postInitiative(initiative);
-        initiativesCreated.push(name);
+        const result = await postInitiative(initiative);
+        if (result === null) {
+            console.error('Failed to post initiative');
+            return;
+        }
+        initiative = result;
+        idsCreated.push(initiative.id!);
 
         // Clear fields after successful send
         (document.getElementById('name') as HTMLInputElement).value = '';
@@ -31,19 +37,18 @@ document.getElementById('initiativeForm')?.addEventListener('submit', submitInit
 
 // Refresh initiatives every second
 setInterval(async () => {
-    const initiatives = await fetchInitiatives();
+    const [initiatives, currentTurnIndex, combatStarted] = await fetchInitiatives();
 
-    const initiativesCreatedCopy = [...initiativesCreated];
-    initiativesCreated.length = 0;
-    indexesCreated.length = 0;
-    initiatives.forEach((init, index) => {
-        if (initiativesCreatedCopy.includes(init.name)) {
-            initiativesCreated.push(init.name);
-            indexesCreated.push(index);
-        }
-    });
+    const currentSignature = makeSignature(initiatives, currentTurnIndex, combatStarted);
+    if (previousSignature === currentSignature) {
+        //No changes, skip rendering
+        console.log('No changes in initiatives, skipping render');
+        return;
+    }
+    previousSignature = currentSignature;
 
-    const combatStarted = await fetchCombatStarted();
-    renderInitiatives(initiatives, await fetchCurrentTurnIndex(), indexesCreated, 'name', 'initiative', 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
+    console.log('Changes in initiatives, rendering');
+
+    renderInitiatives(initiatives, currentTurnIndex, idsCreated, 'name', 'initiative', 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
 
 }, 1000);

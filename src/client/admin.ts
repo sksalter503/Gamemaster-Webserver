@@ -1,9 +1,21 @@
-import { fetchCombatStarted, fetchCurrentTurnIndex, fetchInitiatives, postInitiative, renderInitiatives } from '../shared/initiative';
+/**
+ * Initializes the admin interface for managing combat initiatives.
+ * 
+ * Sets up event listeners for combat control buttons (clear, start, next turn, end combat)
+ * and the initiative submission form. Establishes a polling mechanism that checks for
+ * initiative changes every second and re-renders the initiative list when changes are detected.
+ * 
+ * The polling system compares stringified initiative data to avoid unnecessary renders,
+ * tracking previously created initiative IDs and updating the UI with current turn highlighting
+ * when combat is active.
+ */
+import { fetchInitiatives, postInitiative, renderInitiatives } from '../shared/initiative';
 import { submitInitiative } from './initiative sender';
 import { API_URL } from '../shared/consts';
+import { UUID } from 'crypto';
+import { makeSignature } from '../shared/initiative';
 
-let previousInitiativesData: string = '';
-let indexesCreated: number[] = [];
+let previousSignature: string = '';
 
 document.getElementById('clearInitiativesBtn')!.addEventListener('click', async (e) => {
     e.preventDefault();
@@ -44,19 +56,17 @@ document.getElementById('endCombat')!.addEventListener('click', async (e) => {
 document.getElementById('initiativeForm')!.addEventListener('submit', submitInitiative);
 
 setInterval(async () => {
-    const initiatives = await fetchInitiatives();
-    const combatStarted = await fetchCombatStarted();
-    const currentTurnIndex = await fetchCurrentTurnIndex();
+    const [initiatives, currentTurnIndex, combatStarted] = await fetchInitiatives();
 
-    const currentInitiativesData = JSON.stringify({ initiatives, combatStarted, currentTurnIndex });
-    if (previousInitiativesData === currentInitiativesData) {
+    const currentSignature = makeSignature(initiatives, currentTurnIndex, combatStarted);
+    if (previousSignature === currentSignature) {
         //No changes, skip rendering
         console.log('No changes in initiatives, skipping render');
         return;
     }
-    previousInitiativesData = currentInitiativesData;
+    previousSignature = currentSignature;
+
     console.log('Changes in initiatives, rendering');
 
-    indexesCreated = initiatives.map((_, index) => index);
-    renderInitiatives(initiatives, currentTurnIndex, indexesCreated, 'name', 'initiative', 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
+    renderInitiatives(initiatives, currentTurnIndex, [], 'name', 'initiative', 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
 }, 1000);
