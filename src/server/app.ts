@@ -15,7 +15,6 @@ const port = 3000;
  * Initiative tracker stuff --- :
  * //TODO: Create Database persistence.
  * //TODO: Add a way of retreiving user data.
- * //TODO: Add a way to optionally hide health values from players.
  * //TODO: Add back button on the public pages.
  * //TODO: Add end turn button on the initiative tracker.
  * //TODO: Change conditions to be a pop out menu that lets you add or remove them.
