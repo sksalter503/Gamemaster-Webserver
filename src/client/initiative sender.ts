@@ -10,8 +10,15 @@ export async function submitInitiative(e: SubmitEvent) {
     const name = (document.getElementById('name') as HTMLInputElement)?.value;
     const initiativeValue = parseInt((document.getElementById('initiative') as HTMLInputElement)?.value);
     const healthValue = parseInt((document.getElementById('health') as HTMLInputElement)?.value);
+    const hideHealthValue = (document.getElementById('hideHealthValue') as HTMLInputElement)?.checked;
+    const hideHealthBar = (document.getElementById('hideHealthBar') as HTMLInputElement)?.checked;
     const maxHealthValue = parseInt((document.getElementById('maxHealth') as HTMLInputElement)?.value);
-    let initiative: Initiative = { name, initiative: initiativeValue, health: healthValue, maxHealth: maxHealthValue };
+    let initiative: Initiative = { name, initiative: initiativeValue, health: healthValue, hideHealthValue: hideHealthValue, hideHealthBar: hideHealthBar, maxHealth: maxHealthValue };
+
+    const hideHealthBarEl = document.getElementById('hideHealthBar') as HTMLInputElement | null;
+    const hideHealthValueEl = document.getElementById('hideHealthValue') as HTMLInputElement | null;
+    if (hideHealthBarEl) hideHealthBarEl.checked = false;
+    if (hideHealthValueEl) hideHealthValueEl.checked = false;
 
     try {
         const result = await postInitiative(initiative);

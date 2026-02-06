@@ -52,7 +52,6 @@ document.getElementById('endCombat')!.addEventListener('click', async (e) => {
         console.error('Error ending combat:', error);
     }
 });
-
 document.getElementById('initiativeForm')!.addEventListener('submit', submitInitiative);
 
 setInterval(async () => {

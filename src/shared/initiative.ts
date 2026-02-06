@@ -10,6 +10,8 @@ export type Initiative = {
     name: string;
     initiative: number;
     health?: number;
+    hideHealthValue?: boolean;
+    hideHealthBar?: boolean;
     maxHealth?: number;
     status?: Status[];
 }
@@ -38,7 +40,7 @@ export async function postInitiative(initiative: Initiative): Promise<Initiative
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ name: initiative.name, initiative: initiative.initiative, health: initiative.health, maxHealth: initiative.maxHealth })
+            body: JSON.stringify({ name: initiative.name, initiative: initiative.initiative, health: initiative.health, maxHealth: initiative.maxHealth, hideHealthValue: initiative.hideHealthValue, hideHealthBar: initiative.hideHealthBar })
         });
 
         return await initiativeResponse.json();
@@ -203,11 +205,16 @@ class RowHandlers {
                 init.health = newHealth;
             });
             healthCell.appendChild(healthField);
+        } else if (init.hideHealthValue) {
+            healthCell.textContent = '';
         } else {
             healthCell.textContent = String(init.health) ?? '' + String(init.maxHealth ? `/${init.maxHealth}` : '');
         }
         tableRow.appendChild(healthCell);
         // Create health bar
+        if (init.hideHealthBar) {
+            return;
+        }
         const healthBar = document.createElement('div');
         healthBar.style.width = '100%';
         healthBar.style.height = '20px';
