@@ -193,6 +193,7 @@ class RowHandlers {
             healthField.style.boxSizing = 'border-box';
 
             healthField.addEventListener('blur', async () => {
+
                 // This code runs when the user clicks away from the editable cell
                 const newHealth = parseInt(healthField.value);
                 await fetch(`${API_URL}/initiative/${init.id}/health`, {
@@ -211,6 +212,7 @@ class RowHandlers {
             healthCell.textContent = String(init.health) ?? '' + String(init.maxHealth ? `/${init.maxHealth}` : '');
         }
         tableRow.appendChild(healthCell);
+
         // Create health bar
         if (init.hideHealthBar) {
             return;
@@ -234,23 +236,103 @@ class RowHandlers {
 
     @RegisterRowHandler('status')
     static addStatusRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: UUID[], _: any, __: any): void {
+
+        // Create the cell of the table
         const statusCell = document.createElement('td');
 
+        // Check to see if the user should be able to edit the statuses
+        // TODO: Abstract this into another function
         if (document.URL.includes('admin') || idsCreated.includes(init.id!)) {
-            // Create status dropdown
+
+            // 1. Create a button with a plus sign with the display set to "block" by default
+            const plusButton = document.createElement('button');
+            plusButton.textContent = '+';
+            plusButton.style.display = 'block';
+
+            // Append the plus button to the cell
+            statusCell.appendChild(plusButton);
+
+            // 2. Create a button with a minus sign and have its display be "hidden" by default
+            const minusButton = document.createElement('button');
+            minusButton.textContent = '-';
+            minusButton.style.display = 'none';
+
+            //Append the minus button to the cell
+            statusCell.appendChild(minusButton);
+
+            // 3. Create the dropdown menu with the display set to "hidden" by default
             const statusSelect = document.createElement('select');
+            statusSelect.style.display = 'none';
+
+            // Status selector can have multiple options selected, the rest are settings for style
             statusSelect.multiple = true;
             statusSelect.style.width = '100%';
             statusSelect.size = 14;
+
+            // Add a <ul> element that reflects the currently selected statuses, where the initial display is set to "block"
+            const statusList = document.createElement('ul');
+            statusList.style.display = 'block';
+            statusList.style.listStyleType = 'none';
+            statusList.style.padding = '0';
+            statusList.style.margin = '0';
+            statusCell.appendChild(statusList);
+
+            // Add <li> elements for each of the initiative's current statuses to the <ul> element
+            // TODO: Abstract this into another function
+            init.status?.forEach(status => {
+                const statusItem = document.createElement('li');
+                statusItem.textContent = status;
+                statusList.appendChild(statusItem);
+            });
+
+            // Generate the list based on the list contained within ALL_STATUSES
+            // TODO: Abstract this into another function
             ALL_STATUSES.forEach(status => {
+
+                // Create the option element
                 const option = document.createElement('option');
                 option.value = status;
                 option.text = status;
+
+                // This is so that when other authenticated users edit the initiative, the dropdown will show the correct statuses as selected
                 option.selected = init.status?.includes(status) ?? false;
+
+                // Append the option to the dropdown
                 statusSelect.appendChild(option);
             });
+
+            // 4. Add an event for when the plus button is clicked that:
+            plusButton.addEventListener('click', () => {
+                // 4a. sets the plus button to hidden
+                plusButton.style.display = 'none';
+                // 4b. sets the minus button to display: "block"
+                minusButton.style.display = 'block';
+                // 4c. sets the dropdown menu to display: "block"
+                statusSelect.style.display = 'block';
+                // 4d. sets the <ul> element to display: "none"
+                statusList.style.display = 'none';
+            });
+
+            // 5. Add an event for when the minus button is clicked that:
+            minusButton.addEventListener('click', () => {
+                // 5a. sets the plus button to display: "block"
+                plusButton.style.display = 'block';
+                // 5b. sets the minus button to display: "hidden"
+                minusButton.style.display = 'none';
+                // 5c. sets the dropdown menu to display: "hidden"
+                statusSelect.style.display = 'none';
+                // 5d. sets the <ul> element to display: "block"
+                statusList.style.display = 'block';
+            });
+
+            // 6. Add the change listener for the dropdown that:
+            // TODO: Abstract the event listener into another function
             statusSelect.addEventListener('change', async () => {
+
+                // 6a. stores the currently selected statuses
                 const selectedStatuses = Array.from(statusSelect.selectedOptions).map(opt => opt.value as Status);
+
+                // 6b. Makes a patch request to the server, where the id is the initiative's id and the body contains those statuses
                 await fetch(`${API_URL}/initiative/${init.id}/status`, {
                     method: 'PATCH',
                     headers: {
@@ -258,12 +340,24 @@ class RowHandlers {
                     },
                     body: JSON.stringify({ status: selectedStatuses })
                 });
+
+                // 6c. Updates the initiative's statuses with the selected statuses
                 init.status = selectedStatuses;
             });
+
+            // Append the dropdown to the cell
             statusCell.appendChild(statusSelect);
-        } else {
+
+        }
+
+        //The user is not allowed to edit the statuses, therefore:
+        else {
+
+            // Display the current statuses as text
             statusCell.textContent = init.status?.join(', ') ?? '';
         }
+
+        // Append the cell to the row
         tableRow.appendChild(statusCell);
 
     }
