@@ -67,20 +67,18 @@ app.get('/admin', (req, res) => {
         return res.send('Incorrect password. Access denied.');
     }
 
-    res.sendFile(path.join(process.cwd(), 'public', 'admin.html'));
+    res.sendFile(path.join(process.cwd(), 'dist/client', 'admin.html'));
 
 });
 
-app.use(express.static(path.join(process.cwd(), 'public'), {
-    extensions: ['html', 'js']
-}));
+app.use(express.static("dist/client"));
 app.use(express.json());
 app.use(cors());
 
 app.get('/', (req, res) => {
     console.log(`loading the directory for ${req.ip}`);
 
-    const publicDir = path.join(process.cwd(), 'public');
+    const publicDir = path.join(process.cwd(), 'dist/client');
     const files = fs.readdirSync(publicDir);
     const htmlFiles = files.filter((file: string) => file.endsWith('.html'));
     const links = htmlFiles

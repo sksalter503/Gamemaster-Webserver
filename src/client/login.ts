@@ -32,6 +32,7 @@ if (userId) {
         const username = (document.getElementById('username') as HTMLInputElement).value;
         const password = (document.getElementById('password') as HTMLInputElement).value;
 
+        console.log(`Attempting login with username: ${username}`);
         fetch(`${API_URL}/login`, {
             method: 'POST',
             headers: {

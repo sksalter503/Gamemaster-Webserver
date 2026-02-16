@@ -8,7 +8,7 @@
     "build:client": "vite build",
     "build": "npm run build:server && npm run build:client",
     "start": "npm run build && node dist/server/app.js",
-    "clean": "tsc --build --clean tsconfig.server.json tsconfig.client.json"
+    "clean": "tsc --build --clean tsconfig.server.json tsconfig.client.json && rmdir /s /q dist"
   },
   "repository": {
     "type": "git",
