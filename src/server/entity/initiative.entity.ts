@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from "typeorm"
-import { UUID } from "crypto"
 import { User } from "./user.entity"
 import { Initiative, Status } from "../../shared/initiative";
 

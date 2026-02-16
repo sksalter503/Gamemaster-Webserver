@@ -3,7 +3,6 @@ import path from 'path';
 import cors from 'cors';
 import { Initiative, Status } from '../shared/initiative';
 import { ADMIN_PASSWORD } from '../shared/consts';
-import { randomUUID, UUID } from 'crypto';
 import {
     getIndexById, createInitiative, getInitiatives, initiativesExist, initiativeCount, deleteAllInitiatives, deleteInitiativeById, getInitiativeById,
     saveInitiative
@@ -110,7 +109,7 @@ app.post('/initiative', express.json(), async (req, res) => {
 });
 
 app.get('/initiative', async (req, res) => {
-    const initiatives = await getInitiatives();
+    const initiatives: Initiative[] = await getInitiatives();
     res.json({ initiatives, currentTurnIndex, combatStarted });
 });
 
@@ -150,7 +149,7 @@ app.delete('/initiative', async (req, res) => {
 });
 
 app.delete('/initiative/:id', async (req, res) => {
-    const id = req.params.id as UUID;
+    const id = req.params.id as string;
     if (id === null) {
         console.error(`ERROR: Invalid id: ${id}`);
         return res.status(400).send('Invalid id');
@@ -168,7 +167,7 @@ app.delete('/initiative/:id', async (req, res) => {
 });
 
 app.patch('/initiative/:id/name', express.json(), async (req, res) => {
-    const id = req.params.id as UUID;
+    const id = req.params.id as string;
     const initiative: InitiativeEntity | null = await getInitiativeById(id);
     if (initiative === null) {
         console.error(`ERROR: Invalid id: ${id}`);
@@ -183,7 +182,7 @@ app.patch('/initiative/:id/name', express.json(), async (req, res) => {
 });
 
 app.patch('/initiative/:id/status', express.json(), async (req, res) => {
-    const id = req.params.id as UUID;
+    const id = req.params.id as string;
     const initiative: InitiativeEntity | null = await getInitiativeById(id);
     if (initiative === null) {
         console.error(`ERROR: Invalid id: ${id}`);
@@ -199,7 +198,7 @@ app.patch('/initiative/:id/status', express.json(), async (req, res) => {
 });
 
 app.patch('/initiative/:id/health', express.json(), async (req, res) => {
-    const id = req.params.id as UUID;
+    const id = req.params.id as string;
     const initiative: InitiativeEntity | null = await getInitiativeById(id);
     if (initiative === null) {
         console.error(`ERROR: Invalid id: ${id}`);

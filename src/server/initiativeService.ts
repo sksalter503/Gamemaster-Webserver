@@ -1,5 +1,4 @@
 import { InitiativeEntity } from './entity/initiative.entity';
-import { UUID } from 'crypto';
 import { myDataSource } from './app-data-source';
 import { Initiative, Status } from '../shared/initiative';
 import { User } from './entity/user.entity';
@@ -13,12 +12,12 @@ try {
     console.error("Error during Data Source initialization:", err);
 }
 
-export function getIndexById(id: UUID, initiatives: InitiativeEntity[]): number | null {
+export function getIndexById(id: string, initiatives: InitiativeEntity[]): number | null {
     const index = initiatives.findIndex(init => init.id === id);
     return index == -1 ? null : index;
 }
 
-export async function createInitiative(user: { id: UUID }, initiative: Initiative): Promise<InitiativeEntity> {
+export async function createInitiative(user: { id: string }, initiative: Initiative): Promise<InitiativeEntity> {
 
     //Check to see if user exists and exit if it does not
     const userEntity = await getUserById(user.id);
@@ -61,11 +60,11 @@ export function deleteAllInitiatives(): Promise<void> {
     return myDataSource.getRepository(InitiativeEntity).clear();
 }
 
-export function deleteInitiativeById(id: UUID): Promise<void> {
+export function deleteInitiativeById(id: string): Promise<void> {
     return myDataSource.getRepository(InitiativeEntity).delete(id).then(() => { });
 }
 
-export function getInitiativeById(id: UUID): Promise<InitiativeEntity | null> {
+export function getInitiativeById(id: string): Promise<InitiativeEntity | null> {
     return myDataSource.getRepository(InitiativeEntity).findOneBy({ id });
 }
 
@@ -73,6 +72,6 @@ export function saveInitiative(initiative: InitiativeEntity): Promise<Initiative
     return myDataSource.manager.save(initiative);
 }
 
-export function getUserById(id: UUID): Promise<User | null> {
+export function getUserById(id: string): Promise<User | null> {
     return myDataSource.getRepository(User).findOneBy({ id });
 }
