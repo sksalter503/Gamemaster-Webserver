@@ -7,7 +7,7 @@ export default defineConfig({
         outDir: "../../dist/client",
         rollupOptions: {
             input: {
-                initiative: "src/client/initiative sender.html",
+                initiative: "src/client/initiative-sender.html",
                 admin: "src/client/admin.html",
             }
         },

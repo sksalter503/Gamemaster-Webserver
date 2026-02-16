@@ -10,7 +10,7 @@
  * when combat is active.
  */
 import { fetchInitiatives, postInitiative, renderInitiatives } from '../shared/initiative';
-import { submitInitiative } from './initiative sender';
+import { submitInitiative } from './initiative-sender';
 import { API_URL } from '../shared/consts';
 import { makeSignature } from '../shared/initiative';
 
