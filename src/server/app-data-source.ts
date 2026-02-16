@@ -10,4 +10,5 @@ export const myDataSource = new DataSource({
     entities: ["src/server/entity/*.entity.js"],
     logging: true,
     synchronize: true,
+    driver: require('mysql2')
 })
