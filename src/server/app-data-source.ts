@@ -10,7 +10,7 @@ export const myDataSource = new DataSource({
     password: "newa5535",
     database: "dnd",
     entities: [InitiativeEntity, UserEntity],
-    logging: true,
+    logging: false, //This produces a lot of logs, so I'm setting it to false
     synchronize: true,
     driver: require('mysql2')
 })

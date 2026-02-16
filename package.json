@@ -5,7 +5,7 @@
   "main": "app.ts",
   "scripts": {
     "build:server": "tsc -p tsconfig.server.json",
-    "build:client": "tsc -p tsconfig.client.json",
+    "build:client": "vite build",
     "build": "npm run build:server && npm run build:client",
     "start": "npm run build && node dist/server/app.js",
     "clean": "tsc --build --clean tsconfig.server.json tsconfig.client.json"
@@ -30,10 +30,12 @@
     "express": "^5.2.1",
     "js-cookie": "^3.0.5",
     "mysql": "^2.18.1",
+    "mysql2": "^3.17.2",
     "path": "^0.12.7",
     "reflect-metadata": "^0.2.2",
     "ts-node": "^10.9.2",
     "typeorm": "^0.3.28",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
   }
 }
