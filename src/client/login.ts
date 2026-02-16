@@ -9,6 +9,7 @@ export let user: User | undefined = undefined;
 
 if (userId) {
     //User cookie exists:
+    console.log(`User cookie found, userId: ${userId}`);
     loggedIn = true;
 
     //Get user data from server:
@@ -41,10 +42,9 @@ if (userId) {
             body: JSON.stringify(
                 { username, password }
             )
-        }).then(res => res.json()).then((data: { userId: string }) => {
-            console.log(`Login successful, userId: ${data.userId}`);
-            userId = data.userId;
-            Cookies.set('userId', userId, { expires: 30 });
+        }).then(res => res.json()).then((data: User) => {
+            console.log(`Login successful, userId: ${data.id}`);
+            Cookies.set('userId', data.id, { expires: 30 });
             loggedIn = true;
 
             //Reload the page to update the UI
