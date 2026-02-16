@@ -5,25 +5,34 @@ import { Initiative, Status } from '../shared/initiative';
 import { ADMIN_PASSWORD } from '../shared/consts';
 import {
     getIndexById, createInitiative, getInitiatives, initiativesExist, initiativeCount, deleteAllInitiatives, deleteInitiativeById, getInitiativeById,
-    saveInitiative
+    saveInitiative,
+    dataSource
 } from './initiativeService';
 import { InitiativeEntity } from './entity/initiative.entity';
-import { User } from './entity/user.entity';
+import { getUserById } from './userService';
 
 const fs = require('fs');
 const app = express();
 const port = 3000;
 
+try {
+    dataSource.initialize();
+    console.log("Data Source has been initialized!");
+} catch (err) {
+    console.error("Error during Data Source initialization:", err);
+}
+
 
 /*
  * Initiative tracker stuff --- :
- * //TODO: Add a way of retreiving user data.
+ * //TODO: Add "rooms"
  * //TODO: Add custom statuses that can be added and removed from the initiative tracker.
  * //TODO: Add back button on the public pages.
  * //TODO: Add end turn button on the initiative tracker.
  * //TODO: Change conditions to be a pop out menu that lets you add or remove them.
  * //TODO: Add AC
  * //TODO: Add Movement speed
+ * //TODO: Add Oauth to logins
  * 
  * DND Beyond Replacement Shit:
  * //TODO: Character sheet
@@ -211,6 +220,18 @@ app.patch('/initiative/:id/health', express.json(), async (req, res) => {
     initiative.health = health;
     await saveInitiative(initiative);
     res.status(200).send();
+});
+
+app.get('/user/:id', express.json(), async (req, res) => {
+    const id = req.params.id as string;
+    console.log(`GET user id: ${id} from ${req.ip}`);
+
+    const user = await getUserById(id);
+    if (!user) {
+        return res.status(404).send('User not found');
+    }
+    res.status(200).json(user);
+
 });
 
 

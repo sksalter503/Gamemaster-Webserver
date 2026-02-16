@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from "typeorm"
-import { User } from "./user.entity"
+import { UserEntity } from "./user.entity"
 import { Initiative, Status } from "../../shared/initiative";
 
 @Entity()
@@ -7,8 +7,8 @@ export class InitiativeEntity implements Initiative {
     @PrimaryGeneratedColumn('uuid')
     id!: string
 
-    @ManyToOne(() => User, user => user.initiatives)
-    user!: User
+    @ManyToOne(() => UserEntity, user => user.initiatives)
+    user!: UserEntity
 
     @Column()
     name!: string

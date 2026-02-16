@@ -31,12 +31,20 @@
                 </div>
                 <button type="submit">Submit</button>
             </form>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+            </form>
             <div id="initiatives">
             </div>
         </div>
     </div>
 
     <script type="module" src="./scripts/client/initiative sender.js"></script>
+    <script type="module" src="./scripts/client/login.js"></script>
 </body>
 
 </html>

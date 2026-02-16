@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm"
 import { InitiativeEntity } from "./entity/initiative.entity"
-import { User } from "./entity/user.entity"
+import { UserEntity } from "./entity/user.entity"
 
 export const myDataSource = new DataSource({
     type: "mysql",
@@ -9,7 +9,7 @@ export const myDataSource = new DataSource({
     username: "shane",
     password: "newa5535",
     database: "dnd",
-    entities: [InitiativeEntity, User],
+    entities: [InitiativeEntity, UserEntity],
     logging: true,
     synchronize: true,
     driver: require('mysql2')

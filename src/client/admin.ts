@@ -12,7 +12,6 @@
 import { fetchInitiatives, postInitiative, renderInitiatives } from '../shared/initiative';
 import { submitInitiative } from './initiative sender';
 import { API_URL } from '../shared/consts';
-import { UUID } from 'crypto';
 import { makeSignature } from '../shared/initiative';
 
 let previousSignature: string = '';

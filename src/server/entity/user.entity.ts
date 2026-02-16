@@ -1,8 +1,9 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from "typeorm"
 import { InitiativeEntity } from "./initiative.entity"
+import { User } from "../../shared/user"
 
 @Entity()
-export class User {
+export class UserEntity implements User {
     @PrimaryGeneratedColumn('uuid')
     id!: string
 

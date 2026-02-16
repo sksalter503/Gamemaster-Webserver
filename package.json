@@ -23,10 +23,12 @@
   "dependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^24.10.1",
     "@types/typescript": "^0.4.29",
     "cors": "^2.8.5",
     "express": "^5.2.1",
+    "js-cookie": "^3.0.5",
     "mysql": "^2.18.1",
     "path": "^0.12.7",
     "reflect-metadata": "^0.2.2",

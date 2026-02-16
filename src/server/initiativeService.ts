@@ -1,16 +1,9 @@
 import { InitiativeEntity } from './entity/initiative.entity';
 import { myDataSource } from './app-data-source';
-import { Initiative, Status } from '../shared/initiative';
-import { User } from './entity/user.entity';
+import { Initiative } from '../shared/initiative';
+import { getUserById } from './userService';
 
-const dataSource = myDataSource;
-
-try {
-    dataSource.initialize();
-    console.log("Data Source has been initialized!");
-} catch (err) {
-    console.error("Error during Data Source initialization:", err);
-}
+export const dataSource = myDataSource;
 
 export function getIndexById(id: string, initiatives: InitiativeEntity[]): number | null {
     const index = initiatives.findIndex(init => init.id === id);
@@ -72,6 +65,3 @@ export function saveInitiative(initiative: InitiativeEntity): Promise<Initiative
     return myDataSource.manager.save(initiative);
 }
 
-export function getUserById(id: string): Promise<User | null> {
-    return myDataSource.getRepository(User).findOneBy({ id });
-}
