@@ -1,6 +1,8 @@
 import { InitiativeEntity } from './entity/initiative.entity';
 import { UUID } from 'crypto';
 import { myDataSource } from './app-data-source';
+import { Initiative, Status } from '../shared/initiative';
+import { User } from './entity/user.entity';
 
 const dataSource = myDataSource;
 
@@ -16,8 +18,26 @@ export function getIndexById(id: UUID, initiatives: InitiativeEntity[]): number 
     return index == -1 ? null : index;
 }
 
-export function createInitiative(initiative: InitiativeEntity): Promise<InitiativeEntity> {
-    return myDataSource.manager.save(initiative);
+export async function createInitiative(user: { id: UUID }, initiative: Initiative): Promise<InitiativeEntity> {
+
+    //Check to see if user exists and exit if it does not
+    const userEntity = await getUserById(user.id);
+    if (!userEntity) {
+        throw new Error(`User with id ${user.id} not found`);
+    }
+    //Create the instance of the initiative
+    let initiativeEntity = myDataSource.manager.create(InitiativeEntity, {
+        user: userEntity,
+        name: initiative.name,
+        initiative: initiative.initiative,
+        health: initiative.health,
+        maxHealth: initiative.maxHealth,
+        hideHealthValue: initiative.hideHealthValue,
+        hideHealthBar: initiative.hideHealthBar,
+        status: initiative.status
+    });
+
+    return await myDataSource.manager.save(initiativeEntity); //Should contain the generated id after save
 }
 
 export function getInitiatives(): Promise<InitiativeEntity[]> {
@@ -51,4 +71,8 @@ export function getInitiativeById(id: UUID): Promise<InitiativeEntity | null> {
 
 export function saveInitiative(initiative: InitiativeEntity): Promise<InitiativeEntity> {
     return myDataSource.manager.save(initiative);
+}
+
+export function getUserById(id: UUID): Promise<User | null> {
+    return myDataSource.getRepository(User).findOneBy({ id });
 }

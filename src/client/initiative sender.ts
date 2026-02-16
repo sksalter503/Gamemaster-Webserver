@@ -1,7 +1,6 @@
-import { UUID } from 'crypto';
 import { fetchInitiatives, Initiative, makeSignature, postInitiative, renderInitiatives } from '../shared/initiative';
 //TODO: Add cookies for user identification to retrieve their initiatives
-const idsCreated: UUID[] = [];
+const idsCreated: string[] = [];
 let previousSignature: string = '';
 
 export async function submitInitiative(e: SubmitEvent) {
@@ -14,14 +13,14 @@ export async function submitInitiative(e: SubmitEvent) {
     const hideHealthBar = (document.getElementById('hideHealthBar') as HTMLInputElement)?.checked;
     const maxHealthValue = parseInt((document.getElementById('maxHealth') as HTMLInputElement)?.value);
     let initiative: Initiative = { name, initiative: initiativeValue, health: healthValue, hideHealthValue: hideHealthValue, hideHealthBar: hideHealthBar, maxHealth: maxHealthValue };
-
+    const user = { id: 'default-user-id' }; //TODO: Replace with actual user identification
     const hideHealthBarEl = document.getElementById('hideHealthBar') as HTMLInputElement | null;
     const hideHealthValueEl = document.getElementById('hideHealthValue') as HTMLInputElement | null;
     if (hideHealthBarEl) hideHealthBarEl.checked = false;
     if (hideHealthValueEl) hideHealthValueEl.checked = false;
 
     try {
-        const result = await postInitiative(initiative);
+        const result = await postInitiative(user, initiative);
         if (result === null) {
             console.error('Failed to post initiative');
             return;

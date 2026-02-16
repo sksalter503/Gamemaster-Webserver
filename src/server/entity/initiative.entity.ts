@@ -6,41 +6,29 @@ import { Initiative, Status } from "../../shared/initiative";
 @Entity()
 export class InitiativeEntity implements Initiative {
     @PrimaryGeneratedColumn('uuid')
-    id: UUID
+    id!: string
 
-    @ManyToOne(() => User, user => user.initiatives, { eager: true })
-    user: User
-
-    @Column()
-    name: string
+    @ManyToOne(() => User, user => user.initiatives)
+    user!: User
 
     @Column()
-    initiative: number
+    name!: string
 
     @Column()
+    initiative!: number
+
+    @Column({ nullable: true })
     health?: number
 
-    @Column()
+    @Column({ nullable: true })
     maxHealth?: number
 
-    @Column()
+    @Column({ nullable: true })
     hideHealthValue?: boolean
 
-    @Column()
+    @Column({ nullable: true })
     hideHealthBar?: boolean
 
-    @Column("varchar", { array: true })
+    @Column("json", { nullable: true })
     status?: Status[]
-
-    constructor(id: UUID, user: User, name: string, initiative: number, health?: number, maxHealth?: number, hideHealthValue?: boolean, hideHealthBar?: boolean, status?: Status[]) {
-        this.id = id
-        this.user = user
-        this.name = name
-        this.initiative = initiative
-        this.health = health
-        this.maxHealth = maxHealth
-        this.hideHealthValue = hideHealthValue
-        this.hideHealthBar = hideHealthBar
-        this.status = status
-    }
 }

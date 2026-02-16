@@ -1,12 +1,11 @@
 import { API_URL } from './consts';
-import { UUID } from 'crypto';
 
 export type Status = 'Blinded' | 'Charmed' | 'Deafened' | 'Frightened' | 'Grappled' | 'Incapacitated' | 'Invisible' | 'Paralyzed' | 'Petrified' | 'Poisoned' | 'Prone' | 'Restrained' | 'Stunned' | 'Unconscious';
 
 export const ALL_STATUSES: Status[] = ['Blinded', 'Charmed', 'Deafened', 'Frightened', 'Grappled', 'Incapacitated', 'Invisible', 'Paralyzed', 'Petrified', 'Poisoned', 'Prone', 'Restrained', 'Stunned', 'Unconscious'];
 
 export interface Initiative {
-    id?: UUID;
+    id?: string;
     name: string;
     initiative: number;
     health?: number;
@@ -33,14 +32,27 @@ export async function fetchInitiatives(): Promise<[Initiative[], number, boolean
     }
 }
 
-export async function postInitiative(initiative: Initiative): Promise<Initiative | null> {
+export async function postInitiative(user: any, initiative: Initiative): Promise<Initiative | null> {
     try {
         const initiativeResponse = await fetch(`${API_URL}/initiative`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ name: initiative.name, initiative: initiative.initiative, health: initiative.health, maxHealth: initiative.maxHealth, hideHealthValue: initiative.hideHealthValue, hideHealthBar: initiative.hideHealthBar })
+            body: JSON.stringify(
+                {
+                    user: {
+                        id: user.id
+                    },
+                    initiative: {
+                        name: initiative.name,
+                        initiative: initiative.initiative,
+                        health: initiative.health,
+                        maxHealth: initiative.maxHealth,
+                        hideHealthValue: initiative.hideHealthValue,
+                        hideHealthBar: initiative.hideHealthBar
+                    }
+                })
         });
 
         return await initiativeResponse.json();
@@ -51,7 +63,7 @@ export async function postInitiative(initiative: Initiative): Promise<Initiative
     }
 }
 
-export async function deleteInitiative(id: UUID): Promise<void> {
+export async function deleteInitiative(id: string): Promise<void> {
     try {
         await fetch(`${API_URL}/initiative/${id}`, {
             method: 'DELETE',
@@ -61,7 +73,7 @@ export async function deleteInitiative(id: UUID): Promise<void> {
     }
 }
 
-export async function updateStatus(id: UUID, status: Status[]): Promise<void> {
+export async function updateStatus(id: string, status: Status[]): Promise<void> {
     try {
         await fetch(`${API_URL}/initiative/${id}/status`, {
             method: 'PATCH',
@@ -152,7 +164,7 @@ function RegisterRowHandler(name: string) {
 
 class RowHandlers {
     @RegisterRowHandler('name')
-    static nameRowHandler(tableRow: HTMLTableElement, init: Initiative, idsCreated: UUID[]): void {
+    static nameRowHandler(tableRow: HTMLTableElement, init: Initiative, idsCreated: string[]): void {
         const nameCell = document.createElement('td');
         if (document.URL.includes('admin') || idsCreated.includes(init.id!)) {
             const nameField = document.createElement('input');
@@ -191,7 +203,7 @@ class RowHandlers {
 
     //TODO: Make the max health field editable
     @RegisterRowHandler('health')
-    static addHealthRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: UUID[]): void {
+    static addHealthRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: string[]): void {
         const healthCell = document.createElement('td');
         if (document.URL.includes('admin') || idsCreated.includes(init.id!)) {
             const healthField = document.createElement('input');
@@ -243,7 +255,7 @@ class RowHandlers {
     }
 
     @RegisterRowHandler('status')
-    static addStatusRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: UUID[], _: any, __: any): void {
+    static addStatusRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: string[], _: any, __: any): void {
 
         // Create the cell of the table
         const statusCell = document.createElement('td');
@@ -339,7 +351,7 @@ class RowHandlers {
 
     }
     @RegisterRowHandler('delete')
-    static addDeleteRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: UUID[], _: any, __: any): void {
+    static addDeleteRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: string[], _: any, __: any): void {
         if (!document.URL.includes('admin') && !idsCreated.includes(init.id!)) {
             const emptyCell = document.createElement('td');
             tableRow.appendChild(emptyCell);
@@ -404,7 +416,7 @@ function createStatusOptions(init: Initiative, statusSelect: HTMLSelectElement):
     });
 }
 
-function createRows(table: HTMLTableElement, initiatives: Initiative[], idsCreated: UUID[], currentTurnIndex: number, options: Option[]): void {
+function createRows(table: HTMLTableElement, initiatives: Initiative[], idsCreated: string[], currentTurnIndex: number, options: Option[]): void {
 
 
     initiatives.forEach((init, index) => {
@@ -429,7 +441,7 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], idsCreat
 
 }
 
-export async function renderInitiatives(initiatives: Initiative[], currentTurnIndex: number, idsCreated: UUID[], ...options: Option[]): Promise<void> {
+export async function renderInitiatives(initiatives: Initiative[], currentTurnIndex: number, idsCreated: string[], ...options: Option[]): Promise<void> {
     //TODO: Make it only update if there are changes to that partitcular field
     //Identify the div to attach the table to
     const initiativeDiv = document.getElementById('initiatives');

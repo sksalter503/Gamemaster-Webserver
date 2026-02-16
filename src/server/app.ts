@@ -9,6 +9,7 @@ import {
     saveInitiative
 } from './initiativeService';
 import { InitiativeEntity } from './entity/initiative.entity';
+import { User } from './entity/user.entity';
 
 const fs = require('fs');
 const app = express();
@@ -100,11 +101,12 @@ let combatStarted = false;
 app.post('/initiative', express.json(), async (req, res) => {
     console.log(`POST from ${req.ip}: ${JSON.stringify(req.body)}`);
 
-    let initiative: InitiativeEntity = req.body;
-    initiative = await createInitiative(initiative);
-    console.log(`Adding initiative: ${JSON.stringify(initiative)}`);
+    const initiative: Initiative = req.body.initiative;
+    const user: any = req.body.user;
+    const initiativeEntity = await createInitiative(user, initiative);
+    console.log(`Adding initiative: ${JSON.stringify(initiativeEntity)}`);
 
-    res.status(200).json(initiative);
+    res.status(200).json(initiativeEntity);
 });
 
 app.get('/initiative', async (req, res) => {
