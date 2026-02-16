@@ -9,7 +9,8 @@ import {
     dataSource
 } from './initiativeService';
 import { InitiativeEntity } from './entity/initiative.entity';
-import { getUserById } from './userService';
+import { createUser, getUserById, loginUser } from './userService';
+import { UserEntity } from './entity/user.entity';
 
 const fs = require('fs');
 const app = express();
@@ -114,7 +115,7 @@ app.post('/initiative', express.json(), async (req, res) => {
     const initiativeEntity = await createInitiative(user, initiative);
     console.log(`Adding initiative: ${JSON.stringify(initiativeEntity)}`);
 
-    res.status(200).json(initiativeEntity);
+    res.status(201).json(initiativeEntity);
 });
 
 app.get('/initiative', async (req, res) => {
@@ -231,6 +232,26 @@ app.get('/user/:id', express.json(), async (req, res) => {
         return res.status(404).send('User not found');
     }
     res.status(200).json(user);
+
+});
+
+app.post('/login', express.json(), async (req, res) => {
+    const { username, password } = req.body;
+    console.log(`Login attempt for username: ${username} from ${req.ip}`);
+
+    const user = await loginUser(username, password);
+    if (!user) {
+        console.log(`Login failed for username: ${username} from ${req.ip}, creating a new login with those credentials`);
+        createUser(username, password).then((newUser: UserEntity) => {
+            res.status(201).json(newUser);
+        }).catch(error => {
+            console.error('Error creating user:', error);
+            res.status(500).send('Error creating user');
+        });
+    } else {
+        console.log(`Login successful for username: ${username} from ${req.ip}`);
+        return res.status(200).json(user);
+    }
 
 });
 

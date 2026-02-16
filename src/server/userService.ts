@@ -23,3 +23,10 @@ export function getInitiativesByUserId(userId: string): Promise<InitiativeEntity
         relations: ["initiatives"]
     }).then(user => user ? user.initiatives : null);
 }
+
+export function loginUser(username: string, password: string): Promise<UserEntity | null> {
+    return myDataSource.getRepository(UserEntity).findOne({
+        where: { username, password },
+        relations: ["initiatives"]
+    });
+}
