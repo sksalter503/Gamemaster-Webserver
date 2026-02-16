@@ -71,7 +71,9 @@ app.get('/admin', (req, res) => {
 
 });
 
-app.use(express.static("dist/client"));
+app.use(express.static("dist/client", {
+    extensions: ['html', 'css', 'js']
+}));
 app.use(express.json());
 app.use(cors());
 
