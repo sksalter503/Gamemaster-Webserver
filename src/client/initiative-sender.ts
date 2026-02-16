@@ -1,7 +1,5 @@
 import { fetchInitiatives, Initiative, makeSignature, postInitiative, renderInitiatives } from '../shared/initiative';
 import { user } from "./login"
-//TODO: Add cookies for user identification to retrieve their initiatives
-const idsCreated: string[] = [];
 let previousSignature: string = '';
 
 export async function submitInitiative(e: SubmitEvent) {
@@ -26,7 +24,6 @@ export async function submitInitiative(e: SubmitEvent) {
             return;
         }
         initiative = result;
-        idsCreated.push(initiative.id!);
 
         // Clear fields after successful send
         (document.getElementById('name') as HTMLInputElement).value = '';
@@ -55,6 +52,6 @@ setInterval(async () => {
 
     console.log('Changes in initiatives, rendering');
 
-    renderInitiatives(initiatives, currentTurnIndex, idsCreated, 'name', 'initiative', 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
+    renderInitiatives(initiatives, currentTurnIndex, user?.initiatives as Initiative[], 'name', 'initiative', 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
 
 }, 1000);

@@ -416,7 +416,7 @@ function createStatusOptions(init: Initiative, statusSelect: HTMLSelectElement):
     });
 }
 
-function createRows(table: HTMLTableElement, initiatives: Initiative[], idsCreated: string[], currentTurnIndex: number, options: Option[]): void {
+function createRows(table: HTMLTableElement, initiatives: Initiative[], userInitiatives: Initiative[], currentTurnIndex: number, options: Option[]): void {
 
 
     initiatives.forEach((init, index) => {
@@ -427,7 +427,7 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], idsCreat
                 continue;
             }
             if (option in rowHandlerRegistry) {
-                rowHandlerRegistry[option](tableRow, init, idsCreated, index, currentTurnIndex);
+                rowHandlerRegistry[option](tableRow, init, userInitiatives, index, currentTurnIndex);
             }
         }
 
@@ -441,7 +441,7 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], idsCreat
 
 }
 
-export async function renderInitiatives(initiatives: Initiative[], currentTurnIndex: number, idsCreated: string[], ...options: Option[]): Promise<void> {
+export async function renderInitiatives(initiatives: Initiative[], currentTurnIndex: number, userInitiatives: Initiative[], ...options: Option[]): Promise<void> {
     //TODO: Make it only update if there are changes to that partitcular field
     //Identify the div to attach the table to
     const initiativeDiv = document.getElementById('initiatives');
@@ -465,7 +465,7 @@ export async function renderInitiatives(initiatives: Initiative[], currentTurnIn
     table.appendChild(tableHeaders);
 
     //Create a row for each initiative
-    createRows(table, initiatives, idsCreated, currentTurnIndex, options);
+    createRows(table, initiatives, userInitiatives, currentTurnIndex, options);
 
     //Attach the table to the div
     initiativeDiv.innerHTML = '';
