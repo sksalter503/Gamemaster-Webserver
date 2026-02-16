@@ -7,7 +7,7 @@ export const myDataSource = new DataSource({
     username: "shane",
     password: "newa5535",
     database: "dnd",
-    entities: ["src/server/entity/*.entity.js"],
+    entities: ["./entity/*.entity.js"],
     logging: true,
     synchronize: true,
     driver: require('mysql2')
