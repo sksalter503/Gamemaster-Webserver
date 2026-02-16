@@ -5,7 +5,7 @@ export type Status = 'Blinded' | 'Charmed' | 'Deafened' | 'Frightened' | 'Grappl
 
 export const ALL_STATUSES: Status[] = ['Blinded', 'Charmed', 'Deafened', 'Frightened', 'Grappled', 'Incapacitated', 'Invisible', 'Paralyzed', 'Petrified', 'Poisoned', 'Prone', 'Restrained', 'Stunned', 'Unconscious'];
 
-export type Initiative = {
+export interface Initiative {
     id?: UUID;
     name: string;
     initiative: number;
@@ -82,11 +82,15 @@ let headerRegistry: HeaderRegistry;
 
 // Decorator to register header functions
 function RegisterHeader(name: string) {
-    return function (target: any, context: ClassMethodDecoratorContext) {
+    return function (
+        target: any,
+        propertyKey: string,
+        descriptor: PropertyDescriptor,
+    ) {
         if (!headerRegistry) {
             headerRegistry = {} as any;
         }
-        headerRegistry[name] = target;
+        headerRegistry[name] = descriptor.value;
     };
 }
 
@@ -134,11 +138,15 @@ interface RowHandlerRegistry extends Record<string, (tableRow: HTMLTableRowEleme
 let rowHandlerRegistry: RowHandlerRegistry;
 // Decorator to register row handler functions
 function RegisterRowHandler(name: string) {
-    return function (target: any, context: ClassMethodDecoratorContext) {
+    return function (
+        target: any,
+        propertyKey: string,
+        descriptor: PropertyDescriptor,
+    ) {
         if (!rowHandlerRegistry) {
             rowHandlerRegistry = {} as any;
         }
-        rowHandlerRegistry[name] = target;
+        rowHandlerRegistry[name] = descriptor.value;
     };
 }
 
@@ -241,7 +249,6 @@ class RowHandlers {
         const statusCell = document.createElement('td');
 
         // Check to see if the user should be able to edit the statuses
-        // TODO: Abstract this into another function
         if (document.URL.includes('admin') || idsCreated.includes(init.id!)) {
 
             // 1. Create a button with a plus sign with the display set to "block" by default
@@ -278,7 +285,6 @@ class RowHandlers {
             statusCell.appendChild(statusList);
 
             // Add <li> elements for each of the initiative's current statuses to the <ul> element
-            // TODO: Abstract this into another function
             init.status?.forEach(status => {
                 const statusItem = document.createElement('li');
                 statusItem.textContent = status;
@@ -286,20 +292,7 @@ class RowHandlers {
             });
 
             // Generate the list based on the list contained within ALL_STATUSES
-            // TODO: Abstract this into another function
-            ALL_STATUSES.forEach(status => {
-
-                // Create the option element
-                const option = document.createElement('option');
-                option.value = status;
-                option.text = status;
-
-                // This is so that when other authenticated users edit the initiative, the dropdown will show the correct statuses as selected
-                option.selected = init.status?.includes(status) ?? false;
-
-                // Append the option to the dropdown
-                statusSelect.appendChild(option);
-            });
+            createStatusOptions(init, statusSelect);
 
             // 4. Add an event for when the plus button is clicked that:
             plusButton.addEventListener('click', () => {
@@ -325,30 +318,14 @@ class RowHandlers {
                 statusList.style.display = 'block';
             });
 
-            // 6. Add the change listener for the dropdown that:
-            // TODO: Abstract the event listener into another function
-            statusSelect.addEventListener('change', async () => {
-
-                // 6a. stores the currently selected statuses
-                const selectedStatuses = Array.from(statusSelect.selectedOptions).map(opt => opt.value as Status);
-
-                // 6b. Makes a patch request to the server, where the id is the initiative's id and the body contains those statuses
-                await fetch(`${API_URL}/initiative/${init.id}/status`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ status: selectedStatuses })
-                });
-
-                // 6c. Updates the initiative's statuses with the selected statuses
-                init.status = selectedStatuses;
-            });
+            // 6. Add the change listener for the dropdown:
+            statusSelect.addEventListener('change', statusDropdownHandler.bind(null, init, statusSelect));
 
             // Append the dropdown to the cell
             statusCell.appendChild(statusSelect);
 
         }
+
 
         //The user is not allowed to edit the statuses, therefore:
         else {
@@ -361,7 +338,6 @@ class RowHandlers {
         tableRow.appendChild(statusCell);
 
     }
-
     @RegisterRowHandler('delete')
     static addDeleteRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: UUID[], _: any, __: any): void {
         if (!document.URL.includes('admin') && !idsCreated.includes(init.id!)) {
@@ -392,6 +368,40 @@ class RowHandlers {
             cell.style.fontWeight = 'bold';
         });
     }
+}
+
+async function statusDropdownHandler(init: Initiative, statusSelect: HTMLSelectElement): Promise<void> {
+    // Stores the currently selected statuses
+    const selectedStatuses = Array.from(statusSelect.selectedOptions).map(opt => opt.value as Status);
+
+    // Makes a patch request to the server, where the id is the initiative's id and the body contains those statuses
+    await fetch(`${API_URL}/initiative/${init.id}/status`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: selectedStatuses })
+    });
+
+    // 6c. Updates the initiative's statuses with the selected statuses
+    init.status = selectedStatuses;
+}
+
+function createStatusOptions(init: Initiative, statusSelect: HTMLSelectElement): void {
+
+    ALL_STATUSES.forEach(status => {
+
+        // Create the option element
+        const option = document.createElement('option');
+        option.value = status;
+        option.text = status;
+
+        // This is so that when other authenticated users edit the initiative, the dropdown will show the correct statuses as selected
+        option.selected = init.status?.includes(status) ?? false;
+
+        // Append the option to the dropdown
+        statusSelect.appendChild(option);
+    });
 }
 
 function createRows(table: HTMLTableElement, initiatives: Initiative[], idsCreated: UUID[], currentTurnIndex: number, options: Option[]): void {

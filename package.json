@@ -28,7 +28,9 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "express": "^5.2.1",
+    "mysql": "^2.18.1",
     "path": "^0.12.7",
+    "reflect-metadata": "^0.2.2",
     "ts-node": "^10.9.2",
     "typeorm": "^0.3.28",
     "typescript": "^5.9.3"
