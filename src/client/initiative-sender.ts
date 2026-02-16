@@ -52,6 +52,6 @@ setInterval(async () => {
 
     console.log('Changes in initiatives, rendering');
 
-    renderInitiatives(initiatives, currentTurnIndex, user?.initiatives as Initiative[], 'name', 'initiative', 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
+    renderInitiatives(initiatives, currentTurnIndex, 'name', 'initiative', 'health', 'status', 'delete', combatStarted ? 'highlightCurrent' : undefined);
 
 }, 1000);

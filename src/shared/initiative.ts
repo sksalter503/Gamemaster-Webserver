@@ -1,4 +1,5 @@
 import { API_URL } from './consts';
+import { user } from '../client/login';
 
 export type Status = 'Blinded' | 'Charmed' | 'Deafened' | 'Frightened' | 'Grappled' | 'Incapacitated' | 'Invisible' | 'Paralyzed' | 'Petrified' | 'Poisoned' | 'Prone' | 'Restrained' | 'Stunned' | 'Unconscious';
 
@@ -162,11 +163,15 @@ function RegisterRowHandler(name: string) {
     };
 }
 
+function initiativeBelongsToUser(init: Initiative): boolean {
+    return user!.initiatives!.some((userInit: Initiative) => userInit.id === init.id);
+}
+
 class RowHandlers {
     @RegisterRowHandler('name')
-    static nameRowHandler(tableRow: HTMLTableElement, init: Initiative, idsCreated: string[]): void {
+    static nameRowHandler(tableRow: HTMLTableElement, init: Initiative): void {
         const nameCell = document.createElement('td');
-        if (document.URL.includes('admin') || idsCreated.includes(init.id!)) {
+        if (document.URL.includes('admin') || initiativeBelongsToUser(init)) {
             const nameField = document.createElement('input');
             nameField.type = 'text';
             nameField.value = init.name;
@@ -203,9 +208,9 @@ class RowHandlers {
 
     //TODO: Make the max health field editable
     @RegisterRowHandler('health')
-    static addHealthRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: string[]): void {
+    static addHealthRow(tableRow: HTMLTableElement, init: Initiative): void {
         const healthCell = document.createElement('td');
-        if (document.URL.includes('admin') || idsCreated.includes(init.id!)) {
+        if (document.URL.includes('admin') || initiativeBelongsToUser(init)) {
             const healthField = document.createElement('input');
             healthField.type = 'number';
             healthField.value = init.health?.toString() ?? '';
@@ -255,13 +260,13 @@ class RowHandlers {
     }
 
     @RegisterRowHandler('status')
-    static addStatusRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: string[], _: any, __: any): void {
+    static addStatusRow(tableRow: HTMLTableElement, init: Initiative): void {
 
         // Create the cell of the table
         const statusCell = document.createElement('td');
 
         // Check to see if the user should be able to edit the statuses
-        if (document.URL.includes('admin') || idsCreated.includes(init.id!)) {
+        if (document.URL.includes('admin') || initiativeBelongsToUser(init)) {
 
             // 1. Create a button with a plus sign with the display set to "block" by default
             const plusButton = document.createElement('button');
@@ -351,8 +356,8 @@ class RowHandlers {
 
     }
     @RegisterRowHandler('delete')
-    static addDeleteRow(tableRow: HTMLTableElement, init: Initiative, idsCreated: string[], _: any, __: any): void {
-        if (!document.URL.includes('admin') && !idsCreated.includes(init.id!)) {
+    static addDeleteRow(tableRow: HTMLTableElement, init: Initiative): void {
+        if (!document.URL.includes('admin') && !initiativeBelongsToUser(init)) {
             const emptyCell = document.createElement('td');
             tableRow.appendChild(emptyCell);
             return;
@@ -369,7 +374,7 @@ class RowHandlers {
     }
 
     @RegisterRowHandler('highlightCurrent')
-    static highlightCurrentRow(tableRow: HTMLTableElement, _: any, __: any, index: number, currentTurnIndex: number): void {
+    static highlightCurrentRow(tableRow: HTMLTableElement, _: any, index: number, currentTurnIndex: number): void {
         if (index !== currentTurnIndex) {
             return;
         }
@@ -416,7 +421,7 @@ function createStatusOptions(init: Initiative, statusSelect: HTMLSelectElement):
     });
 }
 
-function createRows(table: HTMLTableElement, initiatives: Initiative[], userInitiatives: Initiative[], currentTurnIndex: number, options: Option[]): void {
+function createRows(table: HTMLTableElement, initiatives: Initiative[], currentTurnIndex: number, options: Option[]): void {
 
 
     initiatives.forEach((init, index) => {
@@ -427,7 +432,7 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], userInit
                 continue;
             }
             if (option in rowHandlerRegistry) {
-                rowHandlerRegistry[option](tableRow, init, userInitiatives, index, currentTurnIndex);
+                rowHandlerRegistry[option](tableRow, init, index, currentTurnIndex);
             }
         }
 
@@ -441,7 +446,7 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], userInit
 
 }
 
-export async function renderInitiatives(initiatives: Initiative[], currentTurnIndex: number, userInitiatives: Initiative[], ...options: Option[]): Promise<void> {
+export async function renderInitiatives(initiatives: Initiative[], currentTurnIndex: number, ...options: Option[]): Promise<void> {
     //TODO: Make it only update if there are changes to that partitcular field
     //Identify the div to attach the table to
     const initiativeDiv = document.getElementById('initiatives');
@@ -465,7 +470,7 @@ export async function renderInitiatives(initiatives: Initiative[], currentTurnIn
     table.appendChild(tableHeaders);
 
     //Create a row for each initiative
-    createRows(table, initiatives, userInitiatives, currentTurnIndex, options);
+    createRows(table, initiatives, currentTurnIndex, options);
 
     //Attach the table to the div
     initiativeDiv.innerHTML = '';
