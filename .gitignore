@@ -1,5 +1,5 @@
 # Ignore the mysql server configuration
-src\server\app-data-source.ts
+src/server/app-data-source.ts
 
 .env
 
