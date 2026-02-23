@@ -1,0 +1,10 @@
+# Ignore the mysql server configuration
+src\server\app-data-source.ts
+
+.env
+
+# Ignore the compiled JavaScript files
+dist\
+
+node_modules\
+node_modules\*
