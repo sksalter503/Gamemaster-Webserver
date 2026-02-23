@@ -2,7 +2,8 @@ import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import { Initiative, Status } from '../shared/initiative';
-import { ADMIN_PASSWORD } from '../shared/consts';
+require('dotenv').config();
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 import {
     getIndexById, createInitiative, getInitiatives, initiativesExist, initiativeCount, deleteAllInitiatives, deleteInitiativeById, getInitiativeById,
     saveInitiative,
