@@ -4,11 +4,6 @@ src\server\app-data-source.ts
 .env
 
 # Ignore the compiled JavaScript files
-dist\
+dist
 
-<<<<<<< HEAD
-node_modules\
-node_modules\*
-=======
-node_modules\
->>>>>>> 6a77e83014848fd14cba64ff63b7c6c8e8df479e
+node_modules
