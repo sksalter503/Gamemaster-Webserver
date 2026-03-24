@@ -8,7 +8,7 @@
     "build:client": "vite build",
     "build": "npm run build:server && npm run build:client",
     "start": "npm run build && node dist/server/app.js",
-    "clean": "tsc --build --clean tsconfig.server.json tsconfig.client.json && rmdir /s /q dist"
+    "clean": "tsc --build --clean tsconfig.server.json tsconfig.client.json && rimraf dist"
   },
   "repository": {
     "type": "git",
@@ -38,5 +38,8 @@
     "typeorm": "^0.3.28",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.0"
   }
 }
