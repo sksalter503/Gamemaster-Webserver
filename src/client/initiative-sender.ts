@@ -1,5 +1,6 @@
 import { fetchInitiatives, Initiative, makeSignature, postInitiative, renderInitiatives } from '../shared/initiative';
 import { user } from "./login"
+import { API_URL } from '../shared/consts';
 let previousSignature: string = '';
 
 export async function submitInitiative(e: SubmitEvent) {
@@ -38,9 +39,38 @@ export async function submitInitiative(e: SubmitEvent) {
 
 document.getElementById('initiativeForm')?.addEventListener('submit', submitInitiative);
 
+document.getElementById('endTurnButton')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+        await fetch(`${API_URL}/initiative/next`);
+    } catch (error) {
+        console.error('Error advancing turn:', error);
+    }
+});
+
 // Refresh initiatives every second
 setInterval(async () => {
     const [initiatives, currentTurnIndex, combatStarted] = await fetchInitiatives();
+
+    let isUsersTurn: boolean = false;
+    try {
+        const currentUserId = user?.id;
+        const currentInitiative = initiatives[currentTurnIndex];
+
+        if (currentInitiative && currentUserId) {
+            const response = await fetch(`${API_URL}/initiative/${currentInitiative.id}/owner/${currentUserId}`);
+            const data = await response.json();
+            isUsersTurn = data.isOwner;
+        }
+    } catch (error) {
+        console.error('Error checking initiative ownership:', error);
+    }
+
+    if (isUsersTurn) {
+        document.body.style.backgroundColor = '#686868'; // Grey background for user's turn
+        const endTurnButton = document.getElementById('endTurnButton') as HTMLButtonElement;
+        endTurnButton.style.display = 'block'; // Show end turn button
+    }
 
     const currentSignature = makeSignature(initiatives, currentTurnIndex, combatStarted);
     if (previousSignature === currentSignature) {

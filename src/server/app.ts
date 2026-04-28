@@ -29,8 +29,6 @@ try {
  * Initiative tracker stuff --- :
  * //TODO: Add "rooms"
  * //TODO: Add custom statuses that can be added and removed from the initiative tracker.
- * //TODO: Add back button on the public pages.
- * //TODO: Add end turn button on the initiative tracker.
  * //TODO: Change conditions to be a pop out menu that lets you add or remove them.
  * //TODO: Add AC
  * //TODO: Add Movement speed
@@ -236,6 +234,19 @@ app.get('/user/:id', express.json(), async (req, res) => {
 
 });
 
+app.get('/initiative/:id/owner/:userId', express.json(), async (req, res) => {
+    const initiativeId = req.params.id as string;
+    const userId = req.params.userId as string;
+
+    const initiative: InitiativeEntity | null = await getInitiativeById(initiativeId);
+    if (initiative === null) {
+        return res.status(404).json({ error: 'Initiative not found' });
+    }
+
+    const isOwner = initiative.user && initiative.user.id === userId;
+    res.status(200).json({ isOwner });
+});
+
 app.post('/login', express.json(), async (req, res) => {
     const { username, password } = req.body;
     console.log(`Login attempt for username: ${username} from ${req.ip}`);
@@ -255,7 +266,6 @@ app.post('/login', express.json(), async (req, res) => {
     }
 
 });
-
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);

@@ -11,7 +11,10 @@
 <body>
     <div class="container">
         <h1>Initiative Tracker</h1>
-        <button id="logoutButton" style="display: none;">Logout</button>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+            <button id="logoutButton" style="display: none; width: 100px">Logout</button>
+            <button id="endTurnButton" style="display: none; width: 100px">End Turn</button>
+        </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
             <form id="initiativeForm" style="display: none;">
                 <div class="form-group">
