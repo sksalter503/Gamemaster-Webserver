@@ -239,8 +239,8 @@ app.get('/initiative/:id/owner/:userId', express.json(), async (req, res) => {
     const initiativeId = req.params.id as string;
     const userId = req.params.userId as string;
     const initiativeUserId = await getInitiativeByIdWithUser(initiativeId).then(initiative => initiative?.user.id);
-
     const isOwner = initiativeUserId && initiativeUserId === userId;
+
     res.status(200).json({ isOwner });
 });
 
