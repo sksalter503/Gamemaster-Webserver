@@ -1,6 +1,3 @@
-# Ignore the mysql server configuration
-src/server/app-data-source.ts
-
 .env
 
 # Ignore the compiled JavaScript files
