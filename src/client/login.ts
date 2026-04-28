@@ -20,6 +20,20 @@ if (userId) {
         //User does not exist
         console.error(`Error fetching user data: ${err}`);
     });
+
+    //Display the initiativeForm
+    const initiativeForm = document.getElementById('initiativeForm') as HTMLFormElement;
+    initiativeForm.style.display = 'block';
+
+    //Create event listener for the logout button
+    const logoutButton = document.getElementById('logoutButton') as HTMLButtonElement;
+    logoutButton.style.display = 'block';
+    logoutButton.addEventListener('click', () => {
+        Cookies.remove('userId');
+        loggedIn = false;
+        location.reload();
+    });
+
 } else {
     //No user cookie, so display login form:
     const loginForm = document.getElementById('loginForm') as HTMLFormElement;

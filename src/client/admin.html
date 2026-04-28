@@ -11,6 +11,7 @@
 <body>
     <div class="container">
         <h1>Admin Panel</h1>
+        <button id="logoutButton" style="display: none;">Logout</button>
         <button id="clearInitiativesBtn">Clear Initiatives</button>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
             <button id="startCombat">Start Combat</button>
@@ -18,7 +19,7 @@
             <button id="endCombat">End Combat</button>
         </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
-            <form id="initiativeForm">
+            <form id="initiativeForm" style="display: none;">
                 <div class="form-group">
                     <label for="name">Name:</label>
                     <input type="text" id="name" name="name" required>
@@ -45,6 +46,15 @@
                 </div>
                 <button type="submit">Submit</button>
             </form>
+            <form style="display: none;" id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                    <button type="submit">Login</button>
+                </div>
+            </form>
             <div id="initiatives">
                 <ul style="list-style-type: none;" id="initiatives">
 
@@ -54,7 +64,7 @@
     </div>
 
     <script type="module" src="./admin.ts"></script>
-
+    <script type="module" src="./login.ts"></script>
 </body>
 
 </html>
