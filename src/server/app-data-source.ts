@@ -12,5 +12,5 @@ export const myDataSource = new DataSource({
     database: process.env.DB_NAME,
     entities: [InitiativeEntity, UserEntity],
     synchronize: true,
-    driver: 'mysql2',
+    connectorPackage: "mysql2"
 });
