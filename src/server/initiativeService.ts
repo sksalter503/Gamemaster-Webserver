@@ -61,7 +61,13 @@ export function getInitiativeById(id: string): Promise<InitiativeEntity | null> 
     return myDataSource.getRepository(InitiativeEntity).findOneBy({ id });
 }
 
+export function getInitiativeByIdWithUser(id: string): Promise<InitiativeEntity | null> {
+    return myDataSource.getRepository(InitiativeEntity).findOne({
+        where: { id },
+        relations: ['user']
+    });
+}
+
 export function saveInitiative(initiative: InitiativeEntity): Promise<InitiativeEntity> {
     return myDataSource.manager.save(initiative);
 }
-
