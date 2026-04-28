@@ -57,7 +57,7 @@ setInterval(async () => {
         const currentUserId = user?.id;
         const currentInitiative = initiatives[currentTurnIndex];
 
-        if (currentInitiative && currentUserId) {
+        if (currentInitiative && currentUserId && combatStarted) {
             const response = await fetch(`${API_URL}/initiative/${currentInitiative.id}/owner/${currentUserId}`);
             const data = await response.json();
             isUsersTurn = data.isOwner;

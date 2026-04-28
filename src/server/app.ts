@@ -237,13 +237,9 @@ app.get('/user/:id', express.json(), async (req, res) => {
 app.get('/initiative/:id/owner/:userId', express.json(), async (req, res) => {
     const initiativeId = req.params.id as string;
     const userId = req.params.userId as string;
+    const initiativeUserId = (await getInitiativeById(initiativeId))?.user?.id;
 
-    const initiative: InitiativeEntity | null = await getInitiativeById(initiativeId);
-    if (initiative === null) {
-        return res.status(404).json({ error: 'Initiative not found' });
-    }
-
-    const isOwner = initiative.user && initiative.user.id === userId;
+    const isOwner = initiativeUserId && initiativeUserId === userId;
     res.status(200).json({ isOwner });
 });
 
