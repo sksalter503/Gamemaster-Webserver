@@ -62,6 +62,11 @@ setInterval(async () => {
             const data = await response.json();
             isUsersTurn = data.isOwner;
         }
+        if (isUsersTurn) {
+            console.log("It's the user's turn!");
+        } else {
+            console.log("It's not the user's turn.");
+        }
     } catch (error) {
         console.error('Error checking initiative ownership:', error);
     }
@@ -70,6 +75,10 @@ setInterval(async () => {
         document.body.style.backgroundColor = '#686868'; // Grey background for user's turn
         const endTurnButton = document.getElementById('endTurnButton') as HTMLButtonElement;
         endTurnButton.style.display = 'block'; // Show end turn button
+    } else {
+        document.body.style.backgroundColor = ''; // Reset background color
+        const endTurnButton = document.getElementById('endTurnButton') as HTMLButtonElement;
+        endTurnButton.style.display = 'none'; // Hide end turn button
     }
 
     const currentSignature = makeSignature(initiatives, currentTurnIndex, combatStarted);
