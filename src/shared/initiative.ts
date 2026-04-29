@@ -1,9 +1,13 @@
 import { API_URL } from './consts';
 import { user } from '../client/login';
 
-export type Status = 'Blinded' | 'Charmed' | 'Deafened' | 'Frightened' | 'Grappled' | 'Incapacitated' | 'Invisible' | 'Paralyzed' | 'Petrified' | 'Poisoned' | 'Prone' | 'Restrained' | 'Stunned' | 'Unconscious';
+//export type Status = 'Blinded' | 'Charmed' | 'Deafened' | 'Frightened' | 'Grappled' | 'Incapacitated' | 'Invisible' | 'Paralyzed' | 'Petrified' | 'Poisoned' | 'Prone' | 'Restrained' | 'Stunned' | 'Unconscious';
+export interface Status {
+    name: string;
+    duration?: number;
+}
 
-export const ALL_STATUSES: Status[] = ['Blinded', 'Charmed', 'Deafened', 'Frightened', 'Grappled', 'Incapacitated', 'Invisible', 'Paralyzed', 'Petrified', 'Poisoned', 'Prone', 'Restrained', 'Stunned', 'Unconscious'];
+export const ALL_STATUSES: string[] = ['Blinded', 'Charmed', 'Deafened', 'Frightened', 'Grappled', 'Incapacitated', 'Invisible', 'Paralyzed', 'Petrified', 'Poisoned', 'Prone', 'Restrained', 'Stunned', 'Unconscious'];
 
 export interface Initiative {
     id?: string;
@@ -287,13 +291,12 @@ class RowHandlers {
             // 3. Create the dropdown menu with the display set to "hidden" by default
             const statusSelect = document.createElement('select');
             statusSelect.style.display = 'none';
-
-            // Status selector can have multiple options selected, the rest are settings for style
-            statusSelect.multiple = true;
+            statusSelect.multiple = false;
             statusSelect.style.width = '100%';
             statusSelect.size = 14;
 
             // Add a <ul> element that reflects the currently selected statuses, where the initial display is set to "block"
+            // TODO: add a delete button for each status in the list that when clicked, removes that status from the initiative
             const statusList = document.createElement('ul');
             statusList.style.display = 'block';
             statusList.style.listStyleType = 'none';
@@ -303,13 +306,51 @@ class RowHandlers {
 
             // Add <li> elements for each of the initiative's current statuses to the <ul> element
             init.status?.forEach(status => {
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'x';
+                removeButton.style.marginRight = '5px';
+                removeButton.addEventListener('click', async () => {
+                    const updatedStatuses = init.status!.filter(s => s.name !== status.name);
+                    init.status = updatedStatuses;
+                    await updateStatus(init.id!, updatedStatuses);
+                });
                 const statusItem = document.createElement('li');
-                statusItem.textContent = status;
-                statusList.appendChild(statusItem);
+                if (status.duration) {
+                    statusItem.textContent = `${status.name} (${status.duration} rounds)`;
+                } else {
+                    statusItem.textContent = status.name;
+                }
+                removeButton.appendChild(statusItem);
+                statusList.appendChild(removeButton);
             });
 
             // Generate the list based on the list contained within ALL_STATUSES
             createStatusOptions(init, statusSelect);
+
+            // Create the custom status text field
+            const customStatusField = document.createElement('input');
+            customStatusField.type = 'text';
+            customStatusField.placeholder = 'Custom status';
+            customStatusField.style.width = '100%';
+            customStatusField.style.boxSizing = 'border-box';
+            customStatusField.style.marginTop = '5px';
+            statusSelect.appendChild(customStatusField);
+
+            // Add a duration field for statuses
+            const durationField = document.createElement('input');
+            durationField.type = 'number';
+            durationField.placeholder = 'Duration (0 is infinite)';
+            durationField.min = '0';
+            durationField.style.width = '100%';
+            durationField.style.boxSizing = 'border-box';
+            durationField.style.marginTop = '5px';
+            statusSelect.appendChild(durationField);
+
+            // Add the submit button for the status dropdown
+            const submitStatusButton = document.createElement('button');
+            submitStatusButton.textContent = 'Submit';
+            submitStatusButton.style.marginTop = '5px';
+            statusSelect.appendChild(submitStatusButton);
 
             // 4. Add an event for when the plus button is clicked that:
             plusButton.addEventListener('click', () => {
@@ -335,15 +376,34 @@ class RowHandlers {
                 statusList.style.display = 'block';
             });
 
-            // 6. Add the change listener for the dropdown:
-            statusSelect.addEventListener('change', statusDropdownHandler.bind(null, init, statusSelect));
+            // 6. Add the submit listener for the button:
+            submitStatusButton.addEventListener('click', async () => {
+
+                const selectedStatus = statusSelect.value;
+                let newStatus: Status;
+                const duration = parseInt(durationField.value, 10);
+
+                if (selectedStatus === 'Custom') {
+                    const customStatus = customStatusField.value.trim();
+                    if (customStatus === '') {
+                        alert('Please enter a custom status.');
+                        return;
+                    }
+                    newStatus = { name: customStatus, duration: isNaN(duration) ? 0 : duration };
+                } else {
+                    newStatus = { name: selectedStatus, duration: isNaN(duration) ? 0 : duration };
+                }
+                // Add the new status to the initiative's statuses
+
+                const updatedStatuses = [...(init.status ?? []), newStatus];
+                init.status = updatedStatuses;
+                await updateStatus(init.id!, updatedStatuses);
+
+            });
 
             // Append the dropdown to the cell
             statusCell.appendChild(statusSelect);
-
         }
-
-
         //The user is not allowed to edit the statuses, therefore:
         else {
 
@@ -387,23 +447,6 @@ class RowHandlers {
     }
 }
 
-async function statusDropdownHandler(init: Initiative, statusSelect: HTMLSelectElement): Promise<void> {
-    // Stores the currently selected statuses
-    const selectedStatuses = Array.from(statusSelect.selectedOptions).map(opt => opt.value as Status);
-
-    // Makes a patch request to the server, where the id is the initiative's id and the body contains those statuses
-    await fetch(`${API_URL}/initiative/${init.id}/status`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: selectedStatuses })
-    });
-
-    // 6c. Updates the initiative's statuses with the selected statuses
-    init.status = selectedStatuses;
-}
-
 function createStatusOptions(init: Initiative, statusSelect: HTMLSelectElement): void {
 
     ALL_STATUSES.forEach(status => {
@@ -413,12 +456,14 @@ function createStatusOptions(init: Initiative, statusSelect: HTMLSelectElement):
         option.value = status;
         option.text = status;
 
-        // This is so that when other authenticated users edit the initiative, the dropdown will show the correct statuses as selected
-        option.selected = init.status?.includes(status) ?? false;
-
         // Append the option to the dropdown
         statusSelect.appendChild(option);
     });
+
+    const customStatusOption = document.createElement('option');
+    customStatusOption.value = 'Custom';
+    customStatusOption.text = 'Custom';
+    statusSelect.appendChild(customStatusOption);
 }
 
 function createRows(table: HTMLTableElement, initiatives: Initiative[], currentTurnIndex: number, options: Option[]): void {
