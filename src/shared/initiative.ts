@@ -344,7 +344,7 @@ class RowHandlers {
             // Add a duration field for statuses
             const durationField = document.createElement('input');
             durationField.type = 'number';
-            durationField.placeholder = 'Duration (0 is infinite)';
+            durationField.placeholder = 'Duration (0 or blank is infinite)';
             durationField.min = '0';
             durationField.style.display = 'none';
             durationField.style.width = '100%';
