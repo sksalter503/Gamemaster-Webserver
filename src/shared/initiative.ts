@@ -327,10 +327,19 @@ class RowHandlers {
             // Generate the list based on the list contained within ALL_STATUSES
             createStatusOptions(init, statusSelect);
 
+            // Add an event listener to the dropdown that toggles the visibility of a custom status text field when the "Custom" option is selected
+            statusSelect.addEventListener('change', () => {
+                if (statusSelect.value === 'Custom') {
+                    customStatusField.style.display = 'block';
+                } else {
+                    customStatusField.style.display = 'none';
+                }
+            });
+
             // Create the custom status text field
             const customStatusField = document.createElement('input');
             customStatusField.type = 'text';
-            customStatusField.style.display = 'hidden';
+            customStatusField.style.display = 'none';
             customStatusField.placeholder = 'Custom status';
             customStatusField.style.width = '100%';
             customStatusField.style.boxSizing = 'border-box';
@@ -341,7 +350,7 @@ class RowHandlers {
             durationField.type = 'number';
             durationField.placeholder = 'Duration (0 is infinite)';
             durationField.min = '0';
-            durationField.style.display = 'hidden';
+            durationField.style.display = 'none';
             durationField.style.width = '100%';
             durationField.style.boxSizing = 'border-box';
             durationField.style.marginTop = '5px';
@@ -349,7 +358,7 @@ class RowHandlers {
             // Add the submit button for the status dropdown
             const submitStatusButton = document.createElement('button');
             submitStatusButton.textContent = 'Submit';
-            submitStatusButton.style.display = 'hidden';
+            submitStatusButton.style.display = 'none';
             submitStatusButton.style.width = '100%';
             submitStatusButton.style.marginTop = '5px';
 
@@ -363,8 +372,6 @@ class RowHandlers {
                 statusSelect.style.display = 'block';
                 // 4d. sets the <ul> element to display: "none"
                 statusList.style.display = 'none';
-                // 4e. sets the custom status text field to display: "block"
-                customStatusField.style.display = 'block';
                 // 4f. sets the duration field to display: "block"
                 durationField.style.display = 'block';
                 // 4g. sets the submit button to display: "block"
@@ -381,6 +388,12 @@ class RowHandlers {
                 statusSelect.style.display = 'none';
                 // 5d. sets the <ul> element to display: "block"
                 statusList.style.display = 'block';
+                // 5e. sets the custom status text field to display: "hidden"
+                customStatusField.style.display = 'none';
+                // 5f. sets the duration field to display: "hidden"
+                durationField.style.display = 'none';
+                // 5g. sets the submit button to display: "hidden"
+                submitStatusButton.style.display = 'none';
             });
 
             // 6. Add the submit listener for the button:
