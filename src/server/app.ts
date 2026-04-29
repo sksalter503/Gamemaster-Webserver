@@ -137,6 +137,20 @@ app.get('/initiative/next', async (req, res) => {
     if (!await initiativesExist()) {
         return res.status(400).send('No initiatives available');
     }
+
+    // Get the current initiative based on the currentTurnIndex and decrement the duration of any statuses that have a duration, removing them if their duration reaches 0
+    const initiatives = await getInitiatives();
+    const currentInitiative = initiatives[currentTurnIndex];
+    if (currentInitiative) {
+        currentInitiative.status = currentInitiative.status?.map(status => {
+            if (status.duration && status.duration > 0) {
+                status.duration -= 1;
+            }
+            return status;
+        }).filter(status => !status.duration || status.duration > 0);
+        await saveInitiative(currentInitiative);
+    }
+
     currentTurnIndex = (currentTurnIndex + 1) % (await initiativeCount());
     res.status(200).send();
 });
