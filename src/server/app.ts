@@ -142,12 +142,21 @@ app.get('/initiative/next', async (req, res) => {
     const initiatives = await getInitiatives();
     const currentInitiative = initiatives[currentTurnIndex];
     if (currentInitiative) {
-        currentInitiative.status = currentInitiative.status?.map(status => {
-            if (status.duration && status.duration > 0) {
-                status.duration -= 1;
+        let newStatuses: Status[] = [];
+        currentInitiative.status?.forEach(status => {
+            if (status.duration) {
+                if (status.duration === 1) {
+                    // If the status is expiring this turn, we want to remove it but not add it to the list of new statuses
+                    // Statuses that have a value of 0 already are infinite, so we don't want to remove those
+                    return;
+                }
+                const newDuration = status.duration - 1;
+                newStatuses.push({ name: status.name, duration: newDuration });
+            } else {
+                newStatuses.push(status);
             }
-            return status;
-        }).filter(status => !status.duration || status.duration > 0);
+        });
+        currentInitiative.status = newStatuses;
         await saveInitiative(currentInitiative);
     }
 
