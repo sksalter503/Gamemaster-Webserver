@@ -306,22 +306,18 @@ class RowHandlers {
 
             // Add <li> elements for each of the initiative's current statuses to the <ul> element
             init.status?.forEach(status => {
-                const removeButton = document.createElement('button');
-                removeButton.textContent = 'x';
-                removeButton.style.marginRight = '5px';
-                removeButton.addEventListener('click', async () => {
+                const statusItem = document.createElement('li');
+                statusItem.addEventListener('click', async () => {
                     const updatedStatuses = init.status!.filter(s => s.name !== status.name);
                     init.status = updatedStatuses;
                     await updateStatus(init.id!, updatedStatuses);
                 });
-                const statusItem = document.createElement('li');
                 if (status.duration) {
                     statusItem.textContent = `${status.name} (${status.duration} rounds)`;
                 } else {
                     statusItem.textContent = status.name;
                 }
-                removeButton.appendChild(statusItem);
-                statusList.appendChild(removeButton);
+                statusList.appendChild(statusItem);
             });
 
             // Generate the list based on the list contained within ALL_STATUSES
