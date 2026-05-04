@@ -427,7 +427,15 @@ class RowHandlers {
         else {
 
             // Display the current statuses as text
-            statusCell.textContent = init.status?.join(', ') ?? '';
+            let statusText = '';
+            for (const status of init.status ?? []) {
+                if (status.duration) {
+                    statusText += `${status.name} (${status.duration} rounds), `;
+                } else {
+                    statusText += `${status.name}, `;
+                }
+            }
+            statusCell.textContent = statusText.slice(0, -2); // Remove the trailing comma and space
         }
 
         // Append the cell to the row

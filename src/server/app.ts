@@ -28,6 +28,7 @@ try {
 
 /*
  * Initiative tracker stuff --- :
+ * //TODO: Add custom turn 'your turn' colors for the initiative tracker.
  * //TODO: Add "rooms"
  * //TODO: Add custom statuses that can be added and removed from the initiative tracker.
  * //TODO: Change conditions to be a pop out menu that lets you add or remove them.
