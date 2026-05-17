@@ -190,6 +190,17 @@ app.delete('/initiative/:id', async (req, res) => {
     }
 
     console.log(`DELETE initiative id: ${id} from ${req.ip}`);
+    const initiativeIndex = await getIndexById(id, await getInitiatives());
+
+    if (initiativeIndex === null) {
+        console.error(`ERROR: Initiative with id ${id} not found`);
+        return res.status(404).send('Initiative not found');
+    }
+
+    if (initiativeIndex < currentTurnIndex) {
+        currentTurnIndex--;
+    }
+
     await deleteInitiativeById(id);
     if (currentTurnIndex >= await initiativeCount()) {
         currentTurnIndex = 0;
