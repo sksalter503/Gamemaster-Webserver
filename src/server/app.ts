@@ -13,6 +13,7 @@ import {
 import { InitiativeEntity } from './entity/initiative.entity';
 import { createUser, getInitiativesByUserId, getUserById, loginUser } from './userService';
 import { UserEntity } from './entity/user.entity';
+import { get } from 'http';
 
 const fs = require('fs');
 const app = express();
@@ -108,11 +109,23 @@ app.get('/', (req, res) => {
 let currentTurnIndex = 0;
 let combatStarted = false;
 
+// Posting a new initiative to the server, which will be added to the database and returned to the client.
 app.post('/initiative', express.json(), async (req, res) => {
     console.log(`POST from ${req.ip}: ${JSON.stringify(req.body)}`);
 
     const initiative: Initiative = req.body.initiative;
     const user: any = req.body.user;
+
+    if (combatStarted && await initiativesExist()) {
+        //Get the current initiative of whose turn it's supposed to be.
+        const initiatives = await getInitiatives();
+        const currentInitiative = initiatives[currentTurnIndex];
+        //See if the created initiative is before the current turn, and if so, increment the currentTurnIndex so that the current turn is still the same initiative.
+        if (currentInitiative.initiative < initiative.initiative) {
+            currentTurnIndex++;
+        }
+    }
+
     const initiativeEntity = await createInitiative(user, initiative);
     console.log(`Adding initiative: ${JSON.stringify(initiativeEntity)}`);
 
