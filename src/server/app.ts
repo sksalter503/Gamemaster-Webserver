@@ -5,7 +5,7 @@ import { Initiative, Status } from '../shared/initiative';
 require('dotenv').config();
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 import {
-    getIndexById, createInitiative, getInitiatives, initiativesExist, initiativeCount, deleteAllInitiatives, deleteInitiativeById, getInitiativeById,
+    getIndexById, createInitiative, getInitiatives, deleteInitiativeById, getInitiativeById,
     saveInitiative,
     dataSource,
     getInitiativeByIdWithUser
@@ -14,6 +14,7 @@ import { InitiativeEntity } from './entity/initiative.entity';
 import { createUser, getInitiativesByUserId, getUserById, loginUser } from './userService';
 import { UserEntity } from './entity/user.entity';
 import { get } from 'http';
+import { addInitiativeToRoom, deleteAllInitiativesInRoom, getCombatStatus, getInitiativesInRoom, incrementTurnIndex, initiativesExist, removeInitiativeFromRoom, setCombatStatus, updateTurnIndex } from './roomService';
 
 const fs = require('fs');
 const app = express();
@@ -29,10 +30,8 @@ try {
 
 /*
  * Initiative tracker stuff --- :
+ * //TODO: Add a page at '/' where you can login and see all the rooms you are in, as well as join or create a room.
  * //TODO: Add custom turn 'your turn' colors for the initiative tracker.
- * //TODO: Add "rooms"
- * //TODO: Add custom statuses that can be added and removed from the initiative tracker.
- * //TODO: Change conditions to be a pop out menu that lets you add or remove them.
  * //TODO: Add AC
  * //TODO: Add Movement speed
  * //TODO: Add Oauth to logins
@@ -43,42 +42,14 @@ try {
  * //TODO: Better custom items.
  */
 
-app.get('/admin', (req, res) => {
-    if (!req.query.password) {
-        return res.send(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Admin Login</title>
-                <link rel="stylesheet" href="./style/styles.css">
-            </head>
-            <body>
-                <h3>Admin Login</h3>
-                <form method="GET" action="/admin">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                <button type="submit">Login</button>
-                </form>
-            </body>
-            </html>
-            `);
-    }
-    else if (req.query.password !== ADMIN_PASSWORD) {
-        return res.send('Incorrect password. Access denied.');
-    }
-
-    res.sendFile(path.join(process.cwd(), 'dist/client', 'admin.html'));
-
-});
-
 app.use(express.static("dist/client", {
     extensions: ['html', 'css', 'js']
 }));
 app.use(express.json());
 app.use(cors());
 
+
+//TODO: CHANGE THIS
 app.get('/', (req, res) => {
     console.log(`loading the directory for ${req.ip}`);
 
@@ -106,55 +77,69 @@ app.get('/', (req, res) => {
     `);
 });
 
-let currentTurnIndex = 0;
-let combatStarted = false;
-
 // Posting a new initiative to the server, which will be added to the database and returned to the client.
 app.post('/initiative', express.json(), async (req, res) => {
     console.log(`POST from ${req.ip}: ${JSON.stringify(req.body)}`);
 
     const initiative: Initiative = req.body.initiative;
     const user: any = req.body.user;
+    const roomId: string = req.body.roomId;
 
-    if (combatStarted && await initiativesExist()) {
+    if (!initiative || !user || !roomId) {
+        console.error(`ERROR: Invalid request body: ${JSON.stringify(req.body)}`);
+        return res.status(400).send('Invalid request body');
+    }
+
+    const { combatStarted, turnIndex } = await getCombatStatus(roomId);
+    const initiativesInRoom = await getInitiativesInRoom(roomId);
+
+    if (combatStarted && initiativesInRoom.length > 0) {
         //Get the current initiative of whose turn it's supposed to be.
-        const initiatives = await getInitiatives();
-        const currentInitiative = initiatives[currentTurnIndex];
+        const currentInitiative = initiativesInRoom[turnIndex];
         //See if the created initiative is before the current turn, and if so, increment the currentTurnIndex so that the current turn is still the same initiative.
         if (currentInitiative.initiative < initiative.initiative) {
-            currentTurnIndex++;
+            updateTurnIndex(roomId, turnIndex + 1);
         }
     }
 
     const initiativeEntity = await createInitiative(user, initiative);
+    await addInitiativeToRoom(roomId, initiativeEntity.id);
     console.log(`Adding initiative: ${JSON.stringify(initiativeEntity)}`);
 
     res.status(201).json(initiativeEntity);
 });
 
-app.get('/initiative', async (req, res) => {
-    const initiatives: Initiative[] = await getInitiatives();
-    res.json({ initiatives, currentTurnIndex, combatStarted });
+//Gets all the initiatives for a specific room, along with the current turn index and whether combat has started or not.
+app.get('/room/:id', async (req, res) => {
+    const roomId: string = req.params.id;
+    const initiatives: Initiative[] = await getInitiativesInRoom(roomId);
+    const { combatStarted, turnIndex } = await getCombatStatus(roomId);
+    res.json({ initiatives, currentTurnIndex: turnIndex, combatStarted });
 });
 
-app.get('/initiative/start', (req, res) => {
-    console.log(`START combat from ${req.ip}`);
+app.get('/room/:id/start', async (req, res) => {
+    const roomId: string = req.params.id;
+    console.log(`START combat for room ${roomId} from ${req.ip}`);
 
-    currentTurnIndex = 0;
-    combatStarted = true;
+    await setCombatStatus(roomId, true, 0).catch(err => {
+        console.error(`ERROR: ${err}`);
+        return res.status(500).send('Error starting combat: ' + err.message);
+    });
     res.status(200).send();
 });
 
-app.get('/initiative/next', async (req, res) => {
-    console.log(`NEXT turn from ${req.ip}`);
+app.get('/room/:id/next', async (req, res) => {
+    const roomId: string = req.params.id;
+    console.log(`NEXT turn for room ${roomId} from ${req.ip}`);
 
-    if (!await initiativesExist()) {
-        return res.status(400).send('No initiatives available');
+    if (!await initiativesExist(roomId)) {
+        return res.status(400).send('No initiatives available, cannot go to next turn');
     }
 
     // Get the current initiative based on the currentTurnIndex and decrement the duration of any statuses that have a duration, removing them if their duration reaches 0
-    const initiatives = await getInitiatives();
-    const currentInitiative = initiatives[currentTurnIndex];
+    const initiatives = await getInitiativesInRoom(roomId);
+    const { turnIndex } = await getCombatStatus(roomId);
+    const currentInitiative = initiatives[turnIndex];
     if (currentInitiative) {
         let newStatuses: Status[] = [];
         currentInitiative.status?.forEach(status => {
@@ -174,53 +159,46 @@ app.get('/initiative/next', async (req, res) => {
         await saveInitiative(currentInitiative);
     }
 
-    currentTurnIndex = (currentTurnIndex + 1) % (await initiativeCount());
+    await incrementTurnIndex(roomId);
     res.status(200).send();
 });
 
-app.get('/initiative/end', (req, res) => {
-    console.log(`END combat from ${req.ip}`);
+app.get('/room/:id/end', (req, res) => {
+    const roomId: string = req.params.id;
+    console.log(`END combat for room ${roomId} from ${req.ip}`);
 
-    currentTurnIndex = 0;
-    combatStarted = false;
+    setCombatStatus(roomId, false, 0).catch(err => {
+        console.error(`ERROR: ${err}`);
+        return res.status(500).send('Error ending combat: ' + err.message);
+    });
     res.status(200).send();
 });
 
-app.delete('/initiative', async (req, res) => {
-    console.log(`DELETE all initiatives from ${req.ip}`);
+app.delete('/room/:id/initiative', async (req, res) => {
+    const roomId: string = req.params.id;
+    console.log(`DELETE all initiatives from room ${roomId} from ${req.ip}`);
 
-    await deleteAllInitiatives();
-    currentTurnIndex = 0;
-    combatStarted = false;
+    await deleteAllInitiativesInRoom(roomId).catch(err => {
+        console.error(`ERROR: ${err}`);
+        return res.status(500).send('Error deleting all initiatives: ' + err.message);
+    });
     res.status(200).send();
 });
 
-app.delete('/initiative/:id', async (req, res) => {
-    const id = req.params.id as string;
-    if (id === null) {
-        console.error(`ERROR: Invalid id: ${id}`);
+app.delete('/room/:roomId/initiative/:initiativeId', async (req, res) => {
+    const roomId = req.params.roomId as string;
+    const initiativeId = req.params.initiativeId as string;
+    if (initiativeId === null) {
+        console.error(`ERROR: Invalid id: ${initiativeId}`);
         return res.status(400).send('Invalid id');
     }
+    console.log(`DELETE initiative id: ${initiativeId} from ${req.ip}`);
 
-    console.log(`DELETE initiative id: ${id} from ${req.ip}`);
-    const initiativeIndex = await getIndexById(id, await getInitiatives());
+    await removeInitiativeFromRoom(roomId, initiativeId).catch(err => {
+        console.error(`ERROR: ${err}`);
+        return res.status(500).send('Error deleting initiative: ' + err.message);
+    });
 
-    if (initiativeIndex === null) {
-        console.error(`ERROR: Initiative with id ${id} not found`);
-        return res.status(404).send('Initiative not found');
-    }
-
-    if (initiativeIndex < currentTurnIndex) {
-        currentTurnIndex--;
-    }
-
-    await deleteInitiativeById(id);
-    if (currentTurnIndex >= await initiativeCount()) {
-        currentTurnIndex = 0;
-    }
-    if (await initiativeCount() === 0) {
-        combatStarted = false;
-    }
     res.status(200).send();
 });
 
