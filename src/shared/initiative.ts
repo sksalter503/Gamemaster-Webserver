@@ -37,7 +37,7 @@ export async function fetchInitiatives(): Promise<[Initiative[], number, boolean
     }
 }
 
-export async function postInitiative(user: any, initiative: Initiative): Promise<Initiative | null> {
+export async function postInitiative(user: any, initiative: Initiative, roomId: string): Promise<Initiative | null> {
     try {
         const initiativeResponse = await fetch(`${API_URL}/initiative`, {
             method: 'POST',
@@ -48,6 +48,9 @@ export async function postInitiative(user: any, initiative: Initiative): Promise
                 {
                     user: {
                         id: user.id
+                    },
+                    room: {
+                        id: roomId
                     },
                     initiative: {
                         name: initiative.name,
