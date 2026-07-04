@@ -41,18 +41,6 @@ export function getInitiatives(): Promise<InitiativeEntity[]> {
         });
 }
 
-export function initiativesExist(): Promise<boolean> {
-    return myDataSource.getRepository(InitiativeEntity).count().then(count => count > 0);
-}
-
-export function initiativeCount(): Promise<number> {
-    return myDataSource.getRepository(InitiativeEntity).count();
-}
-
-export function deleteAllInitiatives(): Promise<void> {
-    return myDataSource.getRepository(InitiativeEntity).clear();
-}
-
 export function deleteInitiativeById(id: string): Promise<void> {
     return myDataSource.getRepository(InitiativeEntity).delete(id).then(() => { });
 }

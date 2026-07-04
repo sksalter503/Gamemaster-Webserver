@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { InitiativeEntity } from './entity/initiative.entity';
 import { UserEntity } from './entity/user.entity';
+import { RoomEntity } from './entity/room.entity';
 
 export const myDataSource = new DataSource({
     type: 'sqlite',
@@ -8,5 +9,5 @@ export const myDataSource = new DataSource({
     dropSchema: true,
     synchronize: true,
     logging: false,
-    entities: [InitiativeEntity, UserEntity],
+    entities: [InitiativeEntity, UserEntity, RoomEntity],
 })

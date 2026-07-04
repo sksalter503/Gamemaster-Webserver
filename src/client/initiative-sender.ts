@@ -1,7 +1,12 @@
-import { fetchInitiatives, Initiative, makeSignature, postInitiative, renderInitiatives } from '../shared/initiative';
-import { user } from "./login"
+import { fetchInitiatives, Initiative, isUserAdmin, makeSignature, postInitiative, renderInitiatives } from '../shared/initiative';
+import { userPromise } from "./login"
 import { API_URL } from '../shared/consts';
 let previousSignature: string = '';
+export const roomId = new URLSearchParams(window.location.search).get('roomId');
+const roomIdSpan = document.getElementById('roomId') as HTMLSpanElement;
+if (roomIdSpan) {
+    roomIdSpan.innerText = roomId!;
+}
 
 export async function submitInitiative(e: SubmitEvent) {
     e.preventDefault();
@@ -19,7 +24,8 @@ export async function submitInitiative(e: SubmitEvent) {
     if (hideHealthValueEl) hideHealthValueEl.checked = false;
 
     try {
-        const result = await postInitiative(user, initiative);
+        const user = await userPromise;
+        const result = await postInitiative(user, initiative, roomId!);
         if (result === null) {
             console.error('Failed to post initiative');
             return;
@@ -37,12 +43,81 @@ export async function submitInitiative(e: SubmitEvent) {
     }
 }
 
+(async () => {
+    try {
+        const user = await userPromise;
+
+        if (user) {
+            //Show the initiativeContainer
+            const initiativeContainer = document.getElementById('initiativeForm') as HTMLFormElement;
+            console.log(`initiativeContainer: ${initiativeContainer}`);
+            initiativeContainer.style.display = 'block';
+            const loginForm = document.getElementById('loginForm') as HTMLFormElement;
+            loginForm.style.display = 'none';
+
+            //If the user is admin, show the admin controls
+            if (await isUserAdmin()) {
+                const clearInitiativesBtn = document.getElementById('clearInitiativesBtn') as HTMLButtonElement;
+                clearInitiativesBtn.style.display = 'block';
+                const combatControls = document.getElementById('combatControls') as HTMLDivElement;
+                combatControls.style.display = 'grid';
+                const hideHealthBarContainer = document.getElementById('hideHealthBarContainer') as HTMLDivElement;
+                hideHealthBarContainer.style.display = 'block';
+                const hideHealthValueContainer = document.getElementById('hideHealthValueContainer') as HTMLDivElement;
+                hideHealthValueContainer.style.display = 'block';
+
+                // Add event listeners for admin controls
+
+                document.getElementById('clearInitiativesBtn')!.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        await fetch(`${API_URL}/room/${roomId}/initiative`, {
+                            method: 'DELETE',
+                        });
+                        fetchInitiatives(roomId!);
+                    } catch (error) {
+                        console.error('Error clearing initiatives:', error);
+                    }
+                });
+                document.getElementById('startCombat')!.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        await fetch(`${API_URL}/room/${roomId}/start`);
+                    } catch (error) {
+                        console.error('Error starting combat:', error);
+                    }
+                });
+                document.getElementById('nextTurn')!.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        await fetch(`${API_URL}/room/${roomId}/next`);
+                    } catch (error) {
+                        console.error('Error advancing turn:', error);
+                    }
+                });
+                document.getElementById('endCombat')!.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        await fetch(`${API_URL}/room/${roomId}/end`);
+                    } catch (error) {
+                        console.error('Error ending combat:', error);
+                    }
+                });
+
+            }
+
+        }
+    } catch (error) {
+        console.error('Error fetching user:', error);
+    }
+})();
+
 document.getElementById('initiativeForm')?.addEventListener('submit', submitInitiative);
 
 document.getElementById('endTurnButton')?.addEventListener('click', async (e) => {
     e.preventDefault();
     try {
-        await fetch(`${API_URL}/initiative/next`);
+        await fetch(`${API_URL}/room/${roomId}/next`);
     } catch (error) {
         console.error('Error advancing turn:', error);
     }
@@ -50,17 +125,17 @@ document.getElementById('endTurnButton')?.addEventListener('click', async (e) =>
 
 // Refresh initiatives every second
 setInterval(async () => {
-    const [initiatives, currentTurnIndex, combatStarted] = await fetchInitiatives();
+    const [initiatives, currentTurnIndex, combatStarted] = await fetchInitiatives(roomId!);
 
     let isUsersTurn: boolean = false;
     try {
+        const user = await userPromise;
         const currentUserId = user?.id;
         const currentInitiative = initiatives[currentTurnIndex];
 
         if (currentInitiative && currentUserId && combatStarted) {
             const response = await fetch(`${API_URL}/initiative/${currentInitiative.id}/owner/${currentUserId}`);
-            const data = await response.json();
-            isUsersTurn = data.isOwner;
+            isUsersTurn = response.ok && (await response.json()).isOwner;
         }
         if (isUsersTurn) {
             console.log("It's the user's turn!");

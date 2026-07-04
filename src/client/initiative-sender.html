@@ -13,7 +13,15 @@
         <h1>Initiative Tracker</h1>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
             <button id="logoutButton" style="display: none; width: 100px">Logout</button>
+            <button id="clearInitiativesBtn" style="display:none">Clear Initiatives</button>
             <button id="endTurnButton" style="display: none; width: 100px">End Turn</button>
+            <p>Room id: <span id="roomId"></span></p>
+            <div id="combatControls"
+                style="display: none; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                <button id="startCombat">Start Combat</button>
+                <button id="nextTurn">Next Turn</button>
+                <button id="endCombat">End Combat</button>
+            </div>
         </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
             <form id="initiativeForm" style="display: none;">
@@ -32,6 +40,14 @@
                 <div class="form-group">
                     <label for="maxHealth">Max Health:</label>
                     <input type="number" id="maxHealth" name="maxHealth" min="0">
+                </div>
+                <div id="hideHealthValueContainer" style="display:none">
+                    <input type="checkbox" id="hideHealthValue" name="hideHealthValue">
+                    <label for="hideHealthValue">Hide Health Value</label>
+                </div>
+                <div id="hideHealthBarContainer" style="display:none">
+                    <input type="checkbox" id="hideHealthBar" name="hideHealthBar">
+                    <label for="hideHealthBar">Hide Health Bar</label>
                 </div>
                 <button type="submit">Submit</button>
             </form>

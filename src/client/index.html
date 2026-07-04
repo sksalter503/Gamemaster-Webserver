@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="./style/styles.css">
+</head>
+
+<body style="display: grid; place-items: center; gap: 1rem; min-height: 100vh;">
+    <!-- The login form is displayed by default, and centered on the user's display -->
+    <div id="loginContainer" name="login" class="container"
+        style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit" id="loginButton">Login</button>
+            </div>
+        </form>
+    </div>
+    <!-- Display the logout button, but have it hidden by default -->
+    <button id="logoutButton" style="display: none;">Logout</button>
+    <!-- The room selections will be displayed after login is confirmed, so it is hidden by default-->
+    <div id="roomsContainer" name="rooms" class="container"
+        style="display: none; justify-content: center; align-items: center; height: 100vh;">
+        <h2>Join Rooms</h2>
+        <!-- Room selection content will go here -->
+        <table id="roomsTable">
+            <!-- This is left blank and will be populated by the typescript -->
+        </table>
+        <table id="roomJoinTable">
+            <form id="roomJoinForm">
+                <div class="form-group">
+                    <label for="joinRoomId">Room ID:</label>
+                    <input type="text" id="joinRoomId" name="joinRoomId" required>
+                    <button type="submit" id="joinRoomButton">Join Room</button>
+                </div>
+            </form>
+        </table>
+        <br>
+        <h2>Create Room</h2>
+        <table id="roomCreateTable">
+            <form id="roomCreateForm">
+                <div class="form-group">
+                    <label for="newRoomName">New Room Name:</label>
+                    <input type="text" id="newRoomName" name="newRoomName" required>
+                    <button type="submit" id="createRoomButton">Create Room</button>
+                </div>
+            </form>
+        </table>
+    </div>
+    <script type="module" src="./login.ts"></script>
+    <script type="module" src="./index.ts"></script>
+</body>
