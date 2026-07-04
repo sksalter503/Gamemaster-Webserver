@@ -51,30 +51,8 @@ app.use(cors());
 
 //TODO: CHANGE THIS
 app.get('/', (req, res) => {
-    console.log(`loading the directory for ${req.ip}`);
-
-    const publicDir = path.join(process.cwd(), 'dist/client');
-    const files = fs.readdirSync(publicDir);
-    const htmlFiles = files.filter((file: string) => file.endsWith('.html'));
-    const links = htmlFiles
-        .filter((file: string) => file !== 'admin.html')
-        .map((file: string) => `<a href="./${file.replace('.html', '')}">${file.replace('.html', '')}</a>`)
-        .join('<br>');
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Directory</title>
-            <link rel="stylesheet" href="./style/styles.css">
-        </head>
-        <body>
-            <h3>Available Pages:</h3>
-            ${links}
-        </body>
-        </html>
-    `);
+    //Serve the index.html file from the dist/client directory
+    res.sendFile(path.join(__dirname, '../../dist/client/index.html'));
 });
 
 // Posting a new initiative to the server, which will be added to the database and returned to the client.
