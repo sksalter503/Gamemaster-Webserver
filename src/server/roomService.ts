@@ -11,10 +11,12 @@ export function getRoomById(id: string): Promise<RoomEntity | null> {
     });
 }
 
+//Gets all rooms that a user is in, or the admin of
 export function getAllJoinedRoomsByUserId(userId: string): Promise<RoomEntity[]> {
     return myDataSource.getRepository(RoomEntity).createQueryBuilder("room")
         .leftJoinAndSelect("room.players", "player")
-        .where("player.id = :userId", { userId })
+        .leftJoinAndSelect("room.admin", "admin")
+        .where("player.id = :userId OR admin.id = :userId", { userId })
         .getMany();
 }
 
@@ -60,6 +62,15 @@ export function removePlayerFromRoom(roomId: string, playerId: string): Promise<
         }
         room.players = room.players.filter(player => player.id !== playerId);
         return myDataSource.getRepository(RoomEntity).save(room);
+    });
+}
+
+export function checkIfUserIsAdmin(roomId: string, userId: string): Promise<boolean> {
+    return getRoomById(roomId).then(room => {
+        if (!room) {
+            throw new Error(`Room ${roomId} not found`);
+        }
+        return room.admin.id === userId;
     });
 }
 

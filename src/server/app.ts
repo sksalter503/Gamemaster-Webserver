@@ -14,7 +14,7 @@ import { InitiativeEntity } from './entity/initiative.entity';
 import { createUser, getInitiativesByUserId, getUserById, loginUser } from './userService';
 import { UserEntity } from './entity/user.entity';
 import { get } from 'http';
-import { addInitiativeToRoom, deleteAllInitiativesInRoom, getCombatStatus, getInitiativesInRoom, incrementTurnIndex, initiativesExist, removeInitiativeFromRoom, setCombatStatus, updateTurnIndex } from './roomService';
+import { addInitiativeToRoom, addPlayerToRoom, checkIfUserIsAdmin, createRoom, deleteAllInitiativesInRoom, getAllJoinedRoomsByUserId, getCombatStatus, getInitiativesInRoom, incrementTurnIndex, initiativesExist, removeInitiativeFromRoom, setCombatStatus, updateTurnIndex } from './roomService';
 
 const fs = require('fs');
 const app = express();
@@ -30,8 +30,8 @@ try {
 
 /*
  * Initiative tracker stuff --- :
- * //TODO: Add a page at '/' where you can login and see all the rooms you are in, as well as join or create a room.
- * //TODO: Add custom turn 'your turn' colors for the initiative tracker.
+*   //TODO: Add a way to delete rooms from the frontend
+* //TODO: Add custom turn 'your turn' colors for the initiative tracker.
  * //TODO: Add AC
  * //TODO: Add Movement speed
  * //TODO: Add Oauth to logins
@@ -85,6 +85,58 @@ app.post('/initiative', express.json(), async (req, res) => {
     console.log(`Adding initiative: ${JSON.stringify(initiativeEntity)}`);
 
     res.status(201).json(initiativeEntity);
+});
+
+//Gets all the rooms for a specified user
+app.get('/rooms/:id', async (req, res) => {
+    const userId: string = req.params.id as string;
+    if (!userId) {
+        console.error(`ERROR: Invalid userId: ${userId}`);
+        return res.status(400).send('Invalid userId');
+    }
+
+    const rooms = await getAllJoinedRoomsByUserId(userId).catch(err => {
+        console.error(`ERROR: ${err}`);
+        return res.status(500).send('Error getting rooms: ' + err.message);
+    });
+
+    res.status(200).json(rooms);
+
+});
+
+//Request to see if the user is the admin of the room
+app.get('/room/:roomId/isAdmin/:userId', async (req, res) => {
+    const roomId: string = req.params.roomId as string;
+    const userId: string = req.params.userId as string;
+    const isAdmin = await checkIfUserIsAdmin(roomId, userId);
+    res.status(200).json({ isAdmin });
+});
+
+//Post handler for creating a new room
+app.post('/room', express.json(), async (req, res) => {
+    const { name, adminId } = req.body;
+    if (!name || !adminId) {
+        console.error(`ERROR: Invalid request body: ${JSON.stringify(req.body)}`);
+        return res.status(400).send('Invalid request body');
+    }
+
+    const newRoom = await createRoom(adminId, name).catch(err => {
+        console.error(`ERROR: ${err}`);
+        return res.status(500).send('Error creating room: ' + err.message);
+    });
+    res.status(201).json(newRoom);
+
+});
+
+//Post handler for joining a room
+app.post('/room/:roomId/join/:userId', async (req, res) => {
+    const roomId: string = req.params.roomId as string;
+    const userId: string = req.params.userId as string;
+    const room = await addPlayerToRoom(roomId, userId).catch(err => {
+        console.error(`ERROR: ${err}`);
+        return res.status(500).send('Error joining room: ' + err.message);
+    });
+    res.status(200).json(room);
 });
 
 //Gets all the initiatives for a specific room, along with the current turn index and whether combat has started or not.

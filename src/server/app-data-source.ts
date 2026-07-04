@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { InitiativeEntity } from "./entity/initiative.entity";
 import { UserEntity } from "./entity/user.entity";
+import { RoomEntity } from "./entity/room.entity";
 
 export const myDataSource = new DataSource({
     type: "mysql",
@@ -10,7 +11,7 @@ export const myDataSource = new DataSource({
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    entities: [InitiativeEntity, UserEntity],
+    entities: [InitiativeEntity, UserEntity, RoomEntity],
     synchronize: true,
     connectorPackage: "mysql2"
 });

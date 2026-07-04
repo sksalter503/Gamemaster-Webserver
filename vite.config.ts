@@ -8,7 +8,6 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 initiative: "src/client/initiative-sender.html",
-                admin: "src/client/admin.html",
                 index: "src/client/index.html",
             }
         },

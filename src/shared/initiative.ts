@@ -1,5 +1,6 @@
 import { API_URL } from './consts';
-import { user } from '../client/login';
+import { userPromise } from '../client/login';
+import { roomId } from '../client/initiative-sender';
 
 //export type Status = 'Blinded' | 'Charmed' | 'Deafened' | 'Frightened' | 'Grappled' | 'Incapacitated' | 'Invisible' | 'Paralyzed' | 'Petrified' | 'Poisoned' | 'Prone' | 'Restrained' | 'Stunned' | 'Unconscious';
 export interface Status {
@@ -22,9 +23,9 @@ export interface Initiative {
 
 type Option = 'name' | 'health' | 'initiative' | 'status' | 'delete' | 'highlightCurrent' | undefined;
 
-export async function fetchInitiatives(): Promise<[Initiative[], number, boolean]> {
+export async function fetchInitiatives(roomId: string): Promise<[Initiative[], number, boolean]> {
     try {
-        const response = await fetch(`${API_URL}/initiative`);
+        const response = await fetch(`${API_URL}/room/${roomId}`);
         const JSON = await response.json();
         const initiatives = JSON.initiatives as Initiative[];
         const currentTurnIndex = JSON.currentTurnIndex as number;
@@ -49,9 +50,7 @@ export async function postInitiative(user: any, initiative: Initiative, roomId: 
                     user: {
                         id: user.id
                     },
-                    room: {
-                        id: roomId
-                    },
+                    roomId: roomId,
                     initiative: {
                         name: initiative.name,
                         initiative: initiative.initiative,
@@ -73,7 +72,7 @@ export async function postInitiative(user: any, initiative: Initiative, roomId: 
 
 export async function deleteInitiative(id: string): Promise<void> {
     try {
-        await fetch(`${API_URL}/initiative/${id}`, {
+        await fetch(`${API_URL}/room/${roomId}/initiative/${id}`, {
             method: 'DELETE',
         });
     } catch (error) {
@@ -170,15 +169,22 @@ function RegisterRowHandler(name: string) {
     };
 }
 
-function initiativeBelongsToUser(init: Initiative): boolean {
+async function initiativeBelongsToUser(init: Initiative): Promise<boolean> {
+    const user = await userPromise;
     return user!.initiatives!.some((userInit: Initiative) => userInit.id === init.id);
 }
 
+export async function isUserAdmin(): Promise<boolean> {
+    return await fetch(`${API_URL}/room/${roomId}/isAdmin/${(await userPromise)!.id}`).then(res => res.json()).then(data => data.isAdmin);
+}
+
+
 class RowHandlers {
     @RegisterRowHandler('name')
-    static nameRowHandler(tableRow: HTMLTableElement, init: Initiative): void {
+    static async nameRowHandler(tableRow: HTMLTableElement, init: Initiative): Promise<void> {
         const nameCell = document.createElement('td');
-        if (document.URL.includes('admin') || initiativeBelongsToUser(init)) {
+        //Determine if the user is the admin of the room or if the initiative belongs to the user
+        if (await isUserAdmin() || await initiativeBelongsToUser(init)) {
             const nameField = document.createElement('input');
             nameField.type = 'text';
             nameField.value = init.name;
@@ -207,7 +213,7 @@ class RowHandlers {
     }
 
     @RegisterRowHandler('initiative')
-    static addInitiativeRow(tableRow: HTMLTableElement, init: Initiative): void {
+    static async addInitiativeRow(tableRow: HTMLTableElement, init: Initiative): Promise<void> {
         const initiativeCell = document.createElement('td');
         initiativeCell.textContent = init.initiative.toString();
         tableRow.appendChild(initiativeCell);
@@ -215,9 +221,9 @@ class RowHandlers {
 
     //TODO: Make the max health field editable
     @RegisterRowHandler('health')
-    static addHealthRow(tableRow: HTMLTableElement, init: Initiative): void {
+    static async addHealthRow(tableRow: HTMLTableElement, init: Initiative): Promise<void> {
         const healthCell = document.createElement('td');
-        if (document.URL.includes('admin') || initiativeBelongsToUser(init)) {
+        if (await isUserAdmin() || await initiativeBelongsToUser(init)) {
             const healthField = document.createElement('input');
             healthField.type = 'number';
             healthField.value = init.health?.toString() ?? '';
@@ -267,13 +273,13 @@ class RowHandlers {
     }
 
     @RegisterRowHandler('status')
-    static addStatusRow(tableRow: HTMLTableElement, init: Initiative): void {
+    static async addStatusRow(tableRow: HTMLTableElement, init: Initiative): Promise<void> {
 
         // Create the cell of the table
         const statusCell = document.createElement('td');
 
         // Check to see if the user should be able to edit the statuses
-        if (document.URL.includes('admin') || initiativeBelongsToUser(init)) {
+        if (await isUserAdmin() || await initiativeBelongsToUser(init)) {
 
             // 1. Create a button with a plus sign with the display set to "block" by default
             const plusButton = document.createElement('button');
@@ -446,8 +452,8 @@ class RowHandlers {
 
     }
     @RegisterRowHandler('delete')
-    static addDeleteRow(tableRow: HTMLTableElement, init: Initiative): void {
-        if (!document.URL.includes('admin') && !initiativeBelongsToUser(init)) {
+    static async addDeleteRow(tableRow: HTMLTableElement, init: Initiative): Promise<void> {
+        if (await isUserAdmin() && !initiativeBelongsToUser(init)) {
             const emptyCell = document.createElement('td');
             tableRow.appendChild(emptyCell);
             return;
