@@ -502,10 +502,10 @@ function createStatusOptions(init: Initiative, statusSelect: HTMLSelectElement):
     statusSelect.appendChild(customStatusOption);
 }
 
-function createRows(table: HTMLTableElement, initiatives: Initiative[], currentTurnIndex: number, options: Option[]): void {
+async function createRows(table: HTMLTableElement, initiatives: Initiative[], currentTurnIndex: number, options: Option[]): Promise<void> {
 
 
-    initiatives.forEach((init, index) => {
+    await Promise.all(initiatives.map(async (init, index) => {
         const tableRow = document.createElement('tr');
 
         for (const option of options) {
@@ -513,7 +513,7 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], currentT
                 continue;
             }
             if (option in rowHandlerRegistry) {
-                rowHandlerRegistry[option](tableRow, init, index, currentTurnIndex);
+                await rowHandlerRegistry[option](tableRow, init, index, currentTurnIndex);
             }
         }
 
@@ -523,9 +523,10 @@ function createRows(table: HTMLTableElement, initiatives: Initiative[], currentT
         }
 
         table.appendChild(tableRow);
-    });
+    }));
 
 }
+
 
 export async function renderInitiatives(initiatives: Initiative[], currentTurnIndex: number, ...options: Option[]): Promise<void> {
     //TODO: Make it only update if there are changes to that partitcular field
@@ -551,7 +552,7 @@ export async function renderInitiatives(initiatives: Initiative[], currentTurnIn
     table.appendChild(tableHeaders);
 
     //Create a row for each initiative
-    createRows(table, initiatives, currentTurnIndex, options);
+    await createRows(table, initiatives, currentTurnIndex, options);
 
     //Attach the table to the div
     initiativeDiv.innerHTML = '';
