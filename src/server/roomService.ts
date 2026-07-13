@@ -96,6 +96,9 @@ export function addInitiativeToRoom(roomId: string, initiativeId: string): Promi
         }
         if (!room.initiatives.some(init => init.id === initiative.id)) {
             room.initiatives.push(initiative);
+            //sort the initatives
+            room.initiatives.sort((a, b) => b.initiative - a.initiative);
+
         } else {
             throw new Error(`Initiative ${initiativeId} is already in the room`);
         }
@@ -180,7 +183,8 @@ export function getInitiativesInRoom(roomId: string): Promise<InitiativeEntity[]
         if (!room.initiatives) {
             return [];
         }
-        return room.initiatives;
+        //sort the initiatives by their initiative value in descending order
+        return room.initiatives.sort((a, b) => b.initiative - a.initiative);
     });
 }
 
