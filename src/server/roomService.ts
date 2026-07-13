@@ -5,10 +5,13 @@ import { getUserById } from "./userService";
 import { InitiativeEntity } from "./entity/initiative.entity";
 
 export function getRoomById(id: string): Promise<RoomEntity | null> {
-    return myDataSource.getRepository(RoomEntity).findOne({
-        where: { id },
-        relations: ["admin", "players", "initiatives"]
-    });
+    return myDataSource.getRepository(RoomEntity).createQueryBuilder("room")
+        .leftJoinAndSelect("room.admin", "admin")
+        .leftJoinAndSelect("room.players", "players")
+        .leftJoinAndSelect("room.initiatives", "initiatives")
+        .where("room.id = :id", { id })
+        .orderBy("initiatives.initiative", "DESC")
+        .getOne();
 }
 
 //Gets all rooms that a user is in, or the admin of
