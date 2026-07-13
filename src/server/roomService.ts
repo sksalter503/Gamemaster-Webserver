@@ -5,13 +5,10 @@ import { getUserById } from "./userService";
 import { InitiativeEntity } from "./entity/initiative.entity";
 
 export function getRoomById(id: string): Promise<RoomEntity | null> {
-    return myDataSource.getRepository(RoomEntity).createQueryBuilder("room")
-        .leftJoinAndSelect("room.admin", "admin")
-        .leftJoinAndSelect("room.players", "players")
-        .leftJoinAndSelect("room.initiatives", "initiatives")
-        .where("room.id = :id", { id })
-        .orderBy("initiatives.initiative", "DESC")
-        .getOne();
+    return myDataSource.getRepository(RoomEntity).findOne({
+        where: { id },
+        relations: ["admin", "players", "initiatives"]
+    });
 }
 
 //Gets all rooms that a user is in, or the admin of
@@ -179,14 +176,9 @@ export function setCombatStatus(roomId: string, combatStarted: boolean, turnInde
 }
 
 export function getInitiativesInRoom(roomId: string): Promise<InitiativeEntity[]> {
-    return getRoomById(roomId).then(room => {
-        if (!room) {
-            throw new Error(`Room ${roomId} not found`);
-        }
-        if (!room.initiatives) {
-            return [];
-        }
-        return room.initiatives;
+    return myDataSource.getRepository(InitiativeEntity).find({
+        where: { room: { id: roomId } },
+        order: { initiative: "DESC" }
     });
 }
 
