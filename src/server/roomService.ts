@@ -184,6 +184,7 @@ export function getInitiativesInRoom(roomId: string): Promise<InitiativeEntity[]
             return [];
         }
         //sort the initiatives by their initiative value in descending order
+        //TODO:remove this line once the initiatives are sorted
         return room.initiatives.sort((a, b) => b.initiative - a.initiative);
     });
 }
