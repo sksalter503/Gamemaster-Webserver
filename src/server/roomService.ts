@@ -178,6 +178,7 @@ export function setCombatStatus(roomId: string, combatStarted: boolean, turnInde
 export function getInitiativesInRoom(roomId: string): Promise<InitiativeEntity[]> {
     return myDataSource.getRepository(InitiativeEntity).find({
         where: { room: { id: roomId } },
+        relations: ["user"],
         order: { initiative: "DESC" }
     });
 }
