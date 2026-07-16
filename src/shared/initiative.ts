@@ -25,41 +25,47 @@ export interface Initiative {
 
 type Option = 'name' | 'health' | 'initiative' | 'status' | 'delete' | 'highlightCurrent' | undefined;
 
-export function fetchInitiatives(roomId: string): [Initiative[], number, boolean] {
-    fetch(`${API_URL}/room/${roomId}`).then(res => res.json()).then(JSON => {
+export async function fetchInitiatives(roomId: string): Promise<[Initiative[], number, boolean]> {
+    try {
+        const res = await fetch(`${API_URL}/room/${roomId}`);
+        const JSON = await res.json();
         const { initiatives, currentTurnIndex, combatStarted } = JSON;
         return [initiatives as Initiative[], currentTurnIndex as number, combatStarted as boolean];
-    }).catch(error => {
+    } catch (error) {
         console.error('Error fetching initiatives:', error);
-    });
-    return [[], 0, false]; // Default return in case of error
+        return [[], 0, false]; // Default return in case of error
+    }
 }
 
 export async function postInitiative(user: any, initiative: Initiative, roomId: string): Promise<Initiative | null> {
-    fetch(`${API_URL}/initiative`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(
-            {
-                user: {
-                    id: user.id
-                },
-                roomId: roomId,
-                initiative: {
-                    name: initiative.name,
-                    initiative: initiative.initiative,
-                    health: initiative.health,
-                    maxHealth: initiative.maxHealth,
-                    hideHealthValue: initiative.hideHealthValue,
-                    hideHealthBar: initiative.hideHealthBar
-                }
-            })
-    }).then(res => res.json()).then(data => { return data as Initiative; }).catch(error => {
+    try {
+        const res = await fetch(`${API_URL}/initiative`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(
+                {
+                    user: {
+                        id: user.id
+                    },
+                    roomId: roomId,
+                    initiative: {
+                        name: initiative.name,
+                        initiative: initiative.initiative,
+                        health: initiative.health,
+                        maxHealth: initiative.maxHealth,
+                        hideHealthValue: initiative.hideHealthValue,
+                        hideHealthBar: initiative.hideHealthBar
+                    }
+                })
+        });
+        const data = await res.json();
+        return data as Initiative;
+    } catch (error) {
         console.error('Error parsing initiative response:', error);
-    });
-    return null;
+        return null;
+    }
 }
 
 export async function deleteInitiative(id: string): Promise<void> {
@@ -72,16 +78,18 @@ export async function deleteInitiative(id: string): Promise<void> {
     }
 }
 
-export function updateStatus(id: string, status: Status[]): void {
-    fetch(`${API_URL}/initiative/${id}/status`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status })
-    }).catch(error => {
+export async function updateStatus(id: string, status: Status[]): Promise<void> {
+    try {
+        await fetch(`${API_URL}/initiative/${id}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status })
+        });
+    } catch (error) {
         console.error('Error updating status:', error);
-    });
+    }
 }
 
 interface HeaderRegistry extends Record<string, (tableRow: HTMLTableRowElement) => void> { }
