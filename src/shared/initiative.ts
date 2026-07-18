@@ -172,8 +172,14 @@ function initiativeBelongsToUser(init: Initiative, user: User): boolean {
 }
 
 export async function isUserAdmin(): Promise<boolean> {
-    fetch(`${API_URL}/room/${roomId}/isAdmin/${(await userPromise)!.id}`).then(res => res.json()).then(data => { return data.isAdmin });
-    return false; // Default return in case of error
+    try {
+        const res = await fetch(`${API_URL}/room/${roomId}/isAdmin/${(await userPromise)!.id}`);
+        const data = await res.json();
+        return data.isAdmin;
+    } catch (error) {
+        console.error('Error checking admin status:', error);
+        return false; // Default return in case of error
+    }
 }
 
 class RowHandlers {
