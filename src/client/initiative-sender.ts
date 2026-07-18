@@ -70,6 +70,7 @@ export async function submitInitiative(e: SubmitEvent) {
 
                 document.getElementById('clearInitiativesBtn')!.addEventListener('click', async (e) => {
                     e.preventDefault();
+                    document.getElementById('clearInitiativesBtn')!.setAttribute('disabled', 'true');
                     try {
                         await fetch(`${API_URL}/room/${roomId}/initiative`, {
                             method: 'DELETE',
@@ -77,30 +78,41 @@ export async function submitInitiative(e: SubmitEvent) {
                         fetchInitiatives(roomId!);
                     } catch (error) {
                         console.error('Error clearing initiatives:', error);
+                    } finally {
+                        document.getElementById('clearInitiativesBtn')!.removeAttribute('disabled');
                     }
                 });
                 document.getElementById('startCombat')!.addEventListener('click', async (e) => {
                     e.preventDefault();
+                    document.getElementById('startCombat')!.setAttribute('disabled', 'true');
                     try {
                         await fetch(`${API_URL}/room/${roomId}/start`);
                     } catch (error) {
                         console.error('Error starting combat:', error);
+                    } finally {
+                        document.getElementById('startCombat')!.removeAttribute('disabled');
                     }
                 });
                 document.getElementById('nextTurn')!.addEventListener('click', async (e) => {
                     e.preventDefault();
+                    document.getElementById('nextTurn')!.setAttribute('disabled', 'true');
                     try {
                         await fetch(`${API_URL}/room/${roomId}/next`);
                     } catch (error) {
                         console.error('Error advancing turn:', error);
+                    } finally {
+                        document.getElementById('nextTurn')!.removeAttribute('disabled');
                     }
                 });
                 document.getElementById('endCombat')!.addEventListener('click', async (e) => {
                     e.preventDefault();
+                    document.getElementById('endCombat')!.setAttribute('disabled', 'true');
                     try {
                         await fetch(`${API_URL}/room/${roomId}/end`);
                     } catch (error) {
                         console.error('Error ending combat:', error);
+                    } finally {
+                        document.getElementById('endCombat')!.removeAttribute('disabled');
                     }
                 });
 
@@ -116,10 +128,13 @@ document.getElementById('initiativeForm')?.addEventListener('submit', submitInit
 
 document.getElementById('endTurnButton')?.addEventListener('click', async (e) => {
     e.preventDefault();
+    document.getElementById('endTurnButton')!.setAttribute('disabled', 'true');
     try {
         await fetch(`${API_URL}/room/${roomId}/next`);
     } catch (error) {
         console.error('Error advancing turn:', error);
+    } finally {
+        document.getElementById('endTurnButton')!.removeAttribute('disabled');
     }
 });
 
