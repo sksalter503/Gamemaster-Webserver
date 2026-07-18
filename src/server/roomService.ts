@@ -74,8 +74,11 @@ export function checkIfUserIsAdmin(roomId: string, userId: string): Promise<bool
     });
 }
 
-export function deleteRoom(roomId: string): Promise<void> {
-    return myDataSource.getRepository(RoomEntity).delete(roomId).then(() => { });
+export async function deleteRoom(roomId: string): Promise<void> {
+    await myDataSource.getRepository(RoomEntity).delete(roomId).catch(err => {
+        console.error(`ERROR: ${err}`);
+        throw new Error('Error deleting room: ' + err.message);
+    });
 }
 
 export function addInitiativeToRoom(roomId: string, initiativeId: string): Promise<RoomEntity> {
@@ -217,3 +220,4 @@ export function updateTurnIndex(roomId: string, newTurnIndex: number): Promise<R
         return myDataSource.getRepository(RoomEntity).save(room);
     });
 }
+

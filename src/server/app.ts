@@ -14,7 +14,7 @@ import { InitiativeEntity } from './entity/initiative.entity';
 import { createUser, getInitiativesByUserId, getUserById, loginUser } from './userService';
 import { UserEntity } from './entity/user.entity';
 import { get } from 'http';
-import { addInitiativeToRoom, addPlayerToRoom, checkIfUserIsAdmin, createRoom, deleteAllInitiativesInRoom, getAllJoinedRoomsByUserId, getCombatStatus, getInitiativesInRoom, incrementTurnIndex, initiativesExist, removeInitiativeFromRoom, setCombatStatus, updateTurnIndex } from './roomService';
+import { addInitiativeToRoom, addPlayerToRoom, checkIfUserIsAdmin, createRoom, deleteAllInitiativesInRoom, deleteRoom, getAllJoinedRoomsByUserId, getCombatStatus, getInitiativesInRoom, incrementTurnIndex, initiativesExist, removeInitiativeFromRoom, removePlayerFromRoom, setCombatStatus, updateTurnIndex } from './roomService';
 
 const fs = require('fs');
 const app = express();
@@ -229,6 +229,27 @@ app.delete('/room/:roomId/initiative/:initiativeId', async (req, res) => {
         return res.status(500).send('Error deleting initiative: ' + err.message);
     });
 
+    res.status(200).send();
+});
+
+app.post('/room/:id/leave/:userId', async (req, res) => {
+    const roomId: string = req.params.id;
+    const userId: string = req.params.userId;
+    console.log(`User ${userId} leaving room ${roomId} from ${req.ip}`);
+    await removePlayerFromRoom(roomId, userId).catch(err => {
+        console.error(`ERROR: ${err}`);
+        return res.status(500).send('Error leaving room: ' + err.message);
+    });
+    res.status(200).send();
+});
+
+app.delete('/room/:id', async (req, res) => {
+    const roomId: string = req.params.id;
+    console.log(`DELETE room ${roomId} from ${req.ip}`);
+    await deleteRoom(roomId).catch(err => {
+        console.error(`ERROR: ${err}`);
+        return res.status(500).send('Error deleting room: ' + err.message);
+    });
     res.status(200).send();
 });
 

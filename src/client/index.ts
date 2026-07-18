@@ -27,6 +27,7 @@ import { API_URL } from '../shared/consts';
                 const row = roomsTable.insertRow();
                 const nameCell = row.insertCell(0);
                 nameCell.innerText = room.name;
+
                 const joinCell = row.insertCell(1);
                 const joinButton = document.createElement('button');
                 joinButton.innerText = 'Enter';
@@ -35,6 +36,57 @@ import { API_URL } from '../shared/consts';
                     window.location.href = `initiative-sender?roomId=${room.id}`;
                 });
                 joinCell.appendChild(joinButton);
+
+                //Figure out if the user is the admin of the room, or just a memeber
+                const removeCell = row.insertCell(2);
+                if (room.admin.id === user.id) {
+                    joinButton.innerText = 'Host';
+                    const deleteButton = document.createElement('button');
+                    deleteButton.innerText = 'Delete';
+                    deleteButton.addEventListener('click', async () => {
+                        deleteButton.setAttribute('disabled', 'true');
+                        if (confirm(`Are you sure you want to delete the room "${room.name}"? This action cannot be undone.`)) {
+                            try {
+                                const response = await fetch(`${API_URL}/room/${room.id}`, {
+                                    method: 'DELETE'
+                                });
+                                if (response.ok) {
+                                    //Room has been deleted successfully, reload the page to show the new room in the list
+                                    location.reload();
+                                } else {
+                                    console.error('Failed to delete room');
+                                }
+                            } catch (error) {
+                                console.error('Error deleting room:', error);
+                            }
+                        }
+                        deleteButton.removeAttribute('disabled');
+                    });
+                    removeCell.appendChild(deleteButton);
+                } else {
+                    const leaveButton = document.createElement('button');
+                    leaveButton.innerText = 'Leave';
+                    leaveButton.addEventListener('click', async () => {
+                        leaveButton.setAttribute('disabled', 'true');
+                        if (confirm(`Are you sure you want to leave the room "${room.name}"?`)) {
+                            try {
+                                const response = await fetch(`${API_URL}/room/${room.id}/leave/${user!.id}`, {
+                                    method: 'POST'
+                                });
+                                if (response.ok) {
+                                    //Room has been left successfully, reload the page to show the new room in the list
+                                    location.reload();
+                                } else {
+                                    console.error('Failed to leave room');
+                                }
+                            } catch (error) {
+                                console.error('Error leaving room:', error);
+                            }
+                        }
+                        leaveButton.removeAttribute('disabled');
+                    });
+                    removeCell.appendChild(leaveButton);
+                }
             });
 
             //Get the roomJoinForm and add an event listener to join a room
