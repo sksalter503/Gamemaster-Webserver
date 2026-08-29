@@ -120,7 +120,7 @@ export function removeInitiativeFromRoom(roomId: string, initiativeId: string): 
         }
 
         //Get the index of the initiative in the room's initiatives array
-        const initiativeIndex = room.initiatives.sort((a, b) => b.initiative - a.initiative).findIndex(init => init.id = initiativeId);
+        const initiativeIndex = room.initiatives.sort((a, b) => b.initiative - a.initiative).findIndex(init => init.id === initiativeId);
         room.initiatives = room.initiatives.filter(init => init.id !== initiativeId);
 
         if (initiativeIndex < room.turnIndex) {
