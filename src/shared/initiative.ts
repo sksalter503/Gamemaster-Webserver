@@ -354,6 +354,7 @@ class RowHandlers {
             // Create the custom status text field
             const customStatusField = document.createElement('input');
             customStatusField.type = 'text';
+            customStatusField.maxLength = 32;
             customStatusField.style.display = 'none';
             customStatusField.placeholder = 'Custom status';
             customStatusField.style.width = '100%';
