@@ -1,10 +1,9 @@
 import { InitiativeEntity } from './entity/initiative.entity';
 import { myDataSource } from './app-data-source';
-import { myDataSource as testDataSource } from './testing.app-data-source';
 import { Initiative } from '../shared/initiative';
 import { getUserById } from './userService';
 
-export const dataSource = (process.env.NODE_ENV === 'test') ? testDataSource : myDataSource;
+export const dataSource = myDataSource;
 
 export function getIndexById(id: string, initiatives: InitiativeEntity[]): number | null {
     const index = initiatives.findIndex(init => init.id === id);
