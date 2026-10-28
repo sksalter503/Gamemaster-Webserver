@@ -12,7 +12,7 @@ export class RoomEntity implements Room {
     @JoinColumn({ name: "adminId" })
     admin!: UserEntity
 
-    @Column()
+    @Column("varchar")
     name!: string
 
     @ManyToMany(() => UserEntity)
@@ -22,10 +22,10 @@ export class RoomEntity implements Room {
     @OneToMany(() => InitiativeEntity, (initiative) => initiative.room, { cascade: true, eager: true })
     initiatives!: InitiativeEntity[]
 
-    @Column({ default: false })
+    @Column("boolean", { default: false })
     combatStarted!: boolean
 
-    @Column({ default: 0 })
+    @Column("integer", { default: 0 })
     turnIndex!: number
 
 }

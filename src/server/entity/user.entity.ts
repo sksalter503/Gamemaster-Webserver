@@ -8,10 +8,10 @@ export class UserEntity implements User {
     @PrimaryGeneratedColumn('uuid')
     id!: string
 
-    @Column({ nullable: true })
+    @Column("varchar", { nullable: true })
     username?: string
 
-    @Column({ nullable: true })
+    @Column("varchar", { nullable: true })
     password?: string
 
     @OneToMany(() => RoomEntity, room => room.admin)

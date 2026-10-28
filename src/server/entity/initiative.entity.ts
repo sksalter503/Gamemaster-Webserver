@@ -14,22 +14,22 @@ export class InitiativeEntity implements Initiative {
     @ManyToOne(() => RoomEntity, room => room.initiatives)
     room!: RoomEntity
 
-    @Column()
+    @Column("varchar")
     name!: string
 
-    @Column()
+    @Column("integer")
     initiative!: number
 
-    @Column({ nullable: true })
+    @Column("integer", { nullable: true })
     health?: number
 
-    @Column({ nullable: true })
+    @Column("integer", { nullable: true })
     maxHealth?: number
 
-    @Column({ nullable: true })
+    @Column("boolean", { nullable: true })
     hideHealthValue?: boolean
 
-    @Column({ nullable: true })
+    @Column("boolean", { nullable: true })
     hideHealthBar?: boolean
 
     @Column("json", { nullable: true })

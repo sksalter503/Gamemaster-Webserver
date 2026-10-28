@@ -48,8 +48,6 @@ app.use(express.static("dist/client", {
 app.use(express.json());
 app.use(cors());
 
-
-//TODO: CHANGE THIS
 app.get('/', (req, res) => {
     //Serve the index.html file from the dist/client directory
     res.sendFile(path.join(__dirname, '../../dist/client/index.html'));
@@ -90,9 +88,9 @@ app.post('/initiative', express.json(), async (req, res) => {
 //Gets all the rooms for a specified user
 app.get('/rooms/:id', async (req, res) => {
     const userId: string = req.params.id as string;
-    if (!userId) {
+    if (!userId || await getUserById(userId) === null) {
         console.error(`ERROR: Invalid userId: ${userId}`);
-        return res.status(400).send('Invalid userId');
+        return res.status(404).send('Invalid userId');
     }
 
     const rooms = await getAllJoinedRoomsByUserId(userId).catch(err => {
@@ -341,6 +339,10 @@ app.post('/login', express.json(), async (req, res) => {
 
 });
 
-app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
-});
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Server is running at http://localhost:${port}`);
+    });
+}
+
+export default app;
