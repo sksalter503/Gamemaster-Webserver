@@ -1,3 +1,5 @@
+[![Node.js CI](https://github.com/sksalter503/Gamemaster-Webserver/actions/workflows/node.js.yml/badge.svg)](https://github.com/sksalter503/Gamemaster-Webserver/actions/workflows/node.js.yml)
+
 To run this program, you need `npm` installed:
 https://nodejs.org/en/download
 
