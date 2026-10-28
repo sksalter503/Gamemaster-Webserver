@@ -1,9 +1,10 @@
 import { InitiativeEntity } from './entity/initiative.entity';
 import { myDataSource } from './app-data-source';
+import { myDataSource as testDataSource } from './testing.app-data-source';
 import { Initiative } from '../shared/initiative';
 import { getUserById } from './userService';
 
-export const dataSource = myDataSource;
+export const dataSource = (process.env.NODE_ENV === 'test') ? testDataSource : myDataSource;
 
 export function getIndexById(id: string, initiatives: InitiativeEntity[]): number | null {
     const index = initiatives.findIndex(init => init.id === id);
@@ -18,7 +19,7 @@ export async function createInitiative(user: { id: string }, initiative: Initiat
         throw new Error(`User with id ${user.id} not found`);
     }
     //Create the instance of the initiative
-    let initiativeEntity = myDataSource.manager.create(InitiativeEntity, {
+    let initiativeEntity = dataSource.manager.create(InitiativeEntity, {
         user: userEntity,
         name: initiative.name,
         initiative: initiative.initiative,
@@ -29,11 +30,11 @@ export async function createInitiative(user: { id: string }, initiative: Initiat
         status: initiative.status
     });
 
-    return await myDataSource.manager.save(initiativeEntity); //Should contain the generated id after save
+    return await dataSource.manager.save(initiativeEntity); //Should contain the generated id after save
 }
 
 export function getInitiatives(): Promise<InitiativeEntity[]> {
-    return myDataSource.getRepository(InitiativeEntity).
+    return dataSource.getRepository(InitiativeEntity).
         find({
             order: {
                 initiative: "DESC"
@@ -42,20 +43,20 @@ export function getInitiatives(): Promise<InitiativeEntity[]> {
 }
 
 export function deleteInitiativeById(id: string): Promise<void> {
-    return myDataSource.getRepository(InitiativeEntity).delete(id).then(() => { });
+    return dataSource.getRepository(InitiativeEntity).delete(id).then(() => { });
 }
 
 export function getInitiativeById(id: string): Promise<InitiativeEntity | null> {
-    return myDataSource.getRepository(InitiativeEntity).findOneBy({ id });
+    return dataSource.getRepository(InitiativeEntity).findOneBy({ id });
 }
 
 export function getInitiativeByIdWithUser(id: string): Promise<InitiativeEntity | null> {
-    return myDataSource.getRepository(InitiativeEntity).findOne({
+    return dataSource.getRepository(InitiativeEntity).findOne({
         where: { id },
         relations: ['user']
     });
 }
 
 export function saveInitiative(initiative: InitiativeEntity): Promise<InitiativeEntity> {
-    return myDataSource.manager.save(initiative);
+    return dataSource.manager.save(initiative);
 }
